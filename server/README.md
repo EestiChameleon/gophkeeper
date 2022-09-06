@@ -1,0 +1,1 @@
+GophPassKeeper server documentation

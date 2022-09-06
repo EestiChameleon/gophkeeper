@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package gophkeeper.proto;
+
+option go_package = "github.com/EestiChameleon/gophkeeper/proto";
+
+
+message RegisterUserRequest{
+  string serviceLogin = 1;
+  string servicePass = 2;
+}
+
+message RegisterUserResponse{
+  string status = 1;
+  string jwt = 2;
+}
+
+message LoginUserRequest{
+  string serviceLogin = 1;
+  string servicePass = 2;
+}
+
+message LoginUserResponse{
+  SyncVaultResponse allData = 1;
+  string status = 2;
+  string jwt = 3;
+}
+
+message Pair {
+  string title = 1;
+  string login = 2;
+  string pass = 3;
+  string comment = 4;
+  uint32 version = 5;
+}
+
+message GetPairRequest {
+  string title = 2;
+}
+
+message GetPairResponse {
+  Pair pairs = 1;
+  string status = 2;
+}
+
+message PostPairRequest {
+  Pair pair = 1;
+}
+
+message PostPairResponse {
+  string status = 1;
+}
+
+message DelPairRequest {
+  string title = 1;
+}
+
+message DelPairResponse {
+  string status = 1;
+}
+
+message Text {
+  string title = 1;
+  string body = 2;
+  string comment = 3;
+  uint32 version = 4;
+}
+
+message GetTextRequest {
+  string title = 1;
+}
+
+message GetTextResponse {
+  Text text = 1;
+  string status = 2;
+}
+
+message PostTextRequest {
+  Text text = 1;
+}
+
+message PostTextResponse {
+  string status = 1;
+}
+
+message DelTextRequest {
+  string title = 1;
+}
+
+message DelTextResponse {
+  string status = 1;
+}
+
+message Bin {
+  string title = 1;
+  bytes body = 2;
+  string comment = 3;
+  uint32 version = 4;
+}
+
+message GetBinRequest {
+  string title = 1;
+}
+
+message GetBinResponse {
+  Bin binData = 1;
+  string status = 2;
+}
+
+message PostBinRequest {
+  Bin binData = 1;
+}
+
+message PostBinResponse {
+  string status = 1;
+}
+
+message DelBinRequest {
+  string title = 1;
+}
+
+message DelBinResponse {
+  string status = 1;
+}
+
+message Card {
+  string title = 1;
+  string number = 2;
+  string expdate = 3;
+  string comment = 4;
+  uint32 version = 5;
+}
+
+message GetCardRequest {
+  string title = 1;
+}
+
+message GetCardResponse {
+  Card card = 1;
+  string status = 2;
+}
+
+message PostCardRequest {
+  Card card = 1;
+}
+
+message PostCardResponse {
+  string status = 1;
+}
+
+message DelCardRequest {
+  string title = 1;
+}
+
+message DelCardResponse {
+  string status = 1;
+}
+
+message SyncVaultRequest {
+}
+
+message SyncVaultResponse {
+  repeated Pair pairs = 1;
+  repeated Text texts = 2;
+  repeated Bin binData = 3;
+  repeated Card cards = 4;
+  string status = 5;
+}
+
+service Keeper {
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+
+  rpc GetPair(GetPairRequest) returns (GetPairResponse);
+  rpc PostPair(PostPairRequest) returns (PostPairResponse);
+  rpc DelPair(DelPairRequest) returns (DelPairResponse);
+
+  rpc GetText(GetTextRequest) returns (GetTextResponse);
+  rpc PostText(PostTextRequest) returns (PostTextResponse);
+  rpc DelText(DelTextRequest) returns (DelTextResponse);
+
+  rpc GetBin(GetBinRequest) returns (GetBinResponse);
+  rpc PostBin(PostBinRequest) returns (PostBinResponse);
+  rpc DelBin(DelBinRequest) returns (DelBinResponse);
+
+  rpc GetCard(GetCardRequest) returns (GetCardResponse);
+  rpc PostCard(PostCardRequest) returns (PostCardResponse);
+  rpc DelCard(DelCardRequest) returns (DelCardResponse);
+
+  rpc SyncVault(SyncVaultRequest) returns (SyncVaultResponse);
+}
