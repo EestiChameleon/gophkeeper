@@ -18,21 +18,6 @@ var (
 	}
 )
 
-// AuthCheck is an interceptor to authenticate requests
-func AuthCheck(ctx context.Context) (context.Context, error) {
-	token, err := grpc_auth.AuthFromMD(ctx, "bearer")
-	if err != nil {
-		return nil, err
-	}
-
-	userID, err := service.JWTDecodeUserID(token)
-	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid auth token: %v", err)
-	}
-
-	return ctxfunc.SetUserIDToCTX(ctx, userID), nil
-}
-
 // AuthCheckGRPC
 func AuthCheckGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	log.Println("--> unary interceptor: ", info.FullMethod)

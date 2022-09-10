@@ -54,17 +54,17 @@ type Card struct {
 }
 
 type Vault struct {
-	Pair map[string]*Pair
-	Text map[string]*Text
-	Bin  map[string]*Bin
-	Card map[string]*Card
+	Pair map[string]*Pair `json:"pair"`
+	Text map[string]*Text `json:"text"`
+	Bin  map[string]*Bin  `json:"bin"`
+	Card map[string]*Card `json:"card"`
 }
 
 type ActualData struct {
-	Pairs []*Pair
-	Texts []*Text
-	Bins  []*Bin
-	Cards []*Card
+	Pairs []*Pair `json:"pairs"`
+	Texts []*Text `json:"texts"`
+	Bins  []*Bin  `json:"bins"`
+	Cards []*Card `json:"cards"`
 }
 
 type VaultProto struct {

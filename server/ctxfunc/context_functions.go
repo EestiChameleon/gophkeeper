@@ -21,6 +21,6 @@ func GetUserIDFromCTX(ctx context.Context) int {
 	return value
 }
 
-func SetUserIDToCTX(ctx context.Context, value string) context.Context {
+func SetUserIDToCTX(ctx context.Context, value int) context.Context {
 	return context.WithValue(ctx, userID, value)
 }

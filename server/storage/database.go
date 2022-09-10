@@ -18,7 +18,7 @@ var (
 	ErrNotFound            = errors.New("no records found")
 	ErrRecordAlreadyExists = errors.New("provided data already exists")
 	ctxStorage             = context.Background()
-	Vault                  *VaultStorage
+	Vault                  VaultStorage
 )
 
 type VaultStorage struct {

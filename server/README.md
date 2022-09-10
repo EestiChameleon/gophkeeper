@@ -1,1 +1,1 @@
-GophPassKeeper server documentation
+GophKeeper server documentation

@@ -41,12 +41,12 @@ func JWTEncode(key string, value interface{}) (string, error) {
 	return token, nil
 }
 
-func JWTDecodeUserID(token string) (string, error) {
+func JWTDecodeUserID(token string) (int, error) {
 	value, err := JWTDecode(token, "sub")
 	if err != nil {
-		return ``, err
+		return -1, err
 	}
-	return value.(string), nil
+	return int(value.(float64)), nil
 }
 
 func JWTDecode(token, key string) (interface{}, error) {

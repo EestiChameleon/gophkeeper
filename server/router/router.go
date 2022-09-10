@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/models"
+	"github.com/EestiChameleon/gophkeeper/server/cfg"
 	"github.com/EestiChameleon/gophkeeper/server/ctxfunc"
 	"github.com/EestiChameleon/gophkeeper/server/router/interceptors"
 	"github.com/EestiChameleon/gophkeeper/server/service"
@@ -32,7 +33,6 @@ type GRPCServer struct {
 func InitGRPCServer() (*GRPCServer, error) {
 	// создаём gRPC-сервер без зарегистрированной службы
 	s := grpc.NewServer(
-		//grpc.UnaryInterceptor(grpc_auth.UnaryServerInterceptor(interceptors.AuthCheck)))
 		grpc.UnaryInterceptor(interceptors.AuthCheckGRPC))
 	// регистрируем сервис
 	pb.RegisterKeeperServer(s, &GRPCServer{})
@@ -42,7 +42,7 @@ func InitGRPCServer() (*GRPCServer, error) {
 
 func (g *GRPCServer) Start() error {
 	// определяем порт для сервера
-	listen, err := net.Listen("tcp", ":3200")
+	listen, err := net.Listen("tcp", cfg.ServerAddress)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (g *GRPCServer) GetPair(ctx context.Context, in *pb.GetPairRequest) (*pb.Ge
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(pb.Pair)
+	data := new(models.Pair)
 	err := storage.GetOneRow("pair_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
@@ -139,13 +139,19 @@ func (g *GRPCServer) GetPair(ctx context.Context, in *pb.GetPairRequest) (*pb.Ge
 	}
 
 	return &pb.GetPairResponse{
-		Pairs:  data,
+		Pairs: &pb.Pair{
+			Title:   data.Title,
+			Login:   data.Login,
+			Pass:    data.Pass,
+			Comment: data.Comment,
+			Version: data.Version,
+		},
 		Status: "success",
 	}, nil
 }
 
 func (g *GRPCServer) PostPair(ctx context.Context, in *pb.PostPairRequest) (*pb.PostPairResponse, error) {
-	if in.Pair.Version < 0 || in.Pair.Login == `` || in.Pair.Title == `` {
+	if in.Pair.Version < 0 || in.Pair.Login == `` || in.Pair.Title == `` || in.Pair.Pass == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
@@ -155,7 +161,7 @@ func (g *GRPCServer) PostPair(ctx context.Context, in *pb.PostPairRequest) (*pb.
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedDBQuery)
 	}
-	// in case not found - we can save version 1? or passed version?
+	// in case not found - we can save passed version. No overwriting data.
 	if errors.Is(err, storage.ErrNotFound) {
 		var resultID int
 		err = storage.GetSingleValue("pair_add", &resultID,
@@ -202,6 +208,8 @@ func (g *GRPCServer) DelPair(ctx context.Context, in *pb.DelPairRequest) (*pb.De
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
 
+	log.Println("affected rows:", affectedRows)
+
 	return &pb.DelPairResponse{Status: "success"}, nil
 }
 
@@ -209,7 +217,7 @@ func (g *GRPCServer) GetText(ctx context.Context, in *pb.GetTextRequest) (*pb.Ge
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(pb.Text)
+	data := new(models.Text)
 	err := storage.GetOneRow("text_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
@@ -223,7 +231,12 @@ func (g *GRPCServer) GetText(ctx context.Context, in *pb.GetTextRequest) (*pb.Ge
 	}
 
 	return &pb.GetTextResponse{
-		Text:   data,
+		Text: &pb.Text{
+			Title:   data.Title,
+			Body:    data.Body,
+			Comment: data.Comment,
+			Version: data.Version,
+		},
 		Status: "success",
 	}, nil
 }
@@ -264,7 +277,7 @@ func (g *GRPCServer) PostText(ctx context.Context, in *pb.PostTextRequest) (*pb.
 
 	// db version is deleted OR received version is the latest => save
 	var resultID int
-	err = storage.GetSingleValue("pair_add", &resultID,
+	err = storage.GetSingleValue("text_add", &resultID,
 		ctxfunc.GetUserIDFromCTX(ctx), in.Text.Title, in.Text.Body, in.Text.Comment, in.Text.Version)
 	if err != nil {
 		log.Println(err)
@@ -286,6 +299,8 @@ func (g *GRPCServer) DelText(ctx context.Context, in *pb.DelTextRequest) (*pb.De
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
 
+	log.Println("affected rows:", affectedRows)
+
 	return &pb.DelTextResponse{Status: "success"}, nil
 }
 
@@ -293,7 +308,7 @@ func (g *GRPCServer) GetBin(ctx context.Context, in *pb.GetBinRequest) (*pb.GetB
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(pb.Bin)
+	data := new(models.Bin)
 	err := storage.GetOneRow("bin_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
@@ -307,8 +322,13 @@ func (g *GRPCServer) GetBin(ctx context.Context, in *pb.GetBinRequest) (*pb.GetB
 	}
 
 	return &pb.GetBinResponse{
-		BinData: data,
-		Status:  "success",
+		BinData: &pb.Bin{
+			Title:   data.Title,
+			Body:    data.Body,
+			Comment: data.Comment,
+			Version: data.Version,
+		},
+		Status: "success",
 	}, nil
 }
 
@@ -370,6 +390,8 @@ func (g *GRPCServer) DelBin(ctx context.Context, in *pb.DelBinRequest) (*pb.DelB
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
 
+	log.Println("affected rows:", affectedRows)
+
 	return &pb.DelBinResponse{Status: "success"}, nil
 }
 
@@ -377,7 +399,7 @@ func (g *GRPCServer) GetCard(ctx context.Context, in *pb.GetCardRequest) (*pb.Ge
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(pb.Card)
+	data := new(models.Card)
 	err := storage.GetOneRow("card_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
@@ -391,7 +413,13 @@ func (g *GRPCServer) GetCard(ctx context.Context, in *pb.GetCardRequest) (*pb.Ge
 	}
 
 	return &pb.GetCardResponse{
-		Card:   data,
+		Card: &pb.Card{
+			Title:   data.Title,
+			Number:  data.Number,
+			Expdate: data.ExpDate,
+			Comment: data.Comment,
+			Version: data.Version,
+		},
 		Status: "success",
 	}, nil
 }
@@ -453,6 +481,8 @@ func (g *GRPCServer) DelCard(ctx context.Context, in *pb.DelCardRequest) (*pb.De
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
+
+	log.Println("affected rows:", affectedRows)
 
 	return &pb.DelCardResponse{Status: "success"}, nil
 }
