@@ -1,7 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
@@ -19,13 +15,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// savePairCmd represents the savePair command
-var savePairCmd = &cobra.Command{
-	Use:   "savePair",
-	Short: "Save a new pair of login&password",
+// saveBinaryCmd represents the saveBinary command
+var saveBinaryCmd = &cobra.Command{
+	Use:   "saveBinary",
+	Short: "Save a new binary data",
 	Long: `
-This command allows to the authenticated user to save new pair data.
-Usage: gophkeeperclient savePair --title=<title_for_saved_login&password> --login=<login_to_save> --password=<password_to_save> --comment=<comment_for_saved_login&password>.`,
+This command allows to the authenticated user to save new binary data.
+Usage: gophkeeperclient saveBinary --title=<title_for_saved_data> --body=<binary_data> --comment=<comment_for_saved_data>.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// check for user auth
 		user, err := user.Current()
@@ -44,14 +40,14 @@ Usage: gophkeeperclient savePair --title=<title_for_saved_login&password> --logi
 			return
 		}
 		// search for local version
-		pair, ok := vault.Pair[savePair.Title]
+		bin, ok := vault.Bin[saveBin.Title]
 		// local version exists - return it.
 		if ok {
 			// we save new version - so we take current version + 1
-			savePair.Version = pair.Version + 1
+			saveBin.Version = bin.Version + 1
 		}
 		// not found - version = 1 - first new
-		savePair.Version = 1
+		saveBin.Version = 1
 
 		// request with 3s timeout. ctx WithTimeOut
 		ctxWTO, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -67,7 +63,7 @@ Usage: gophkeeperclient savePair --title=<title_for_saved_login&password> --logi
 		ctxWTKN := metadata.AppendToOutgoingContext(ctxWTO, "authorization", "Bearer "+jwt)
 
 		// send data to server and receive JWT in case of success. then save it in Users
-		response, err := c.PostPair(ctxWTKN, &pb.PostPairRequest{Pair: &savePair})
+		response, err := c.PostBin(ctxWTKN, &pb.PostBinRequest{BinData: &saveBin})
 		if err != nil {
 			st, ok := status.FromError(err)
 			if !ok {
@@ -86,27 +82,22 @@ Usage: gophkeeperclient savePair --title=<title_for_saved_login&password> --logi
 			fmt.Println(msg)
 			return
 		}
-
+		// save data to local
+		vault.Bin[saveBin.Title] = &saveBin
 		// successful response
-		// save pair to local
-		vault.Pair[savePair.Title] = &savePair
-		// return pair data
 		fmt.Println("New data successfully saved")
-
 	},
 }
 
 var (
-	savePair pb.Pair
+	saveBin pb.Bin
 )
 
 func init() {
-	rootCmd.AddCommand(savePairCmd)
-	savePairCmd.Flags().StringVarP(&savePair.Title, "title", "t", "", "Pair title to save.")
-	savePairCmd.Flags().StringVarP(&savePair.Login, "login", "l", "", "Login to save.")
-	savePairCmd.Flags().StringVarP(&savePair.Pass, "password", "p", "", "Password to save.")
-	savePairCmd.Flags().StringVarP(&savePair.Comment, "comment", "c", "", "Comment for the saved pair. Optional.")
-	savePairCmd.MarkFlagRequired("title")
-	savePairCmd.MarkFlagRequired("login")
-	savePairCmd.MarkFlagRequired("password")
+	rootCmd.AddCommand(saveBinaryCmd)
+	saveBinaryCmd.Flags().StringVarP(&saveBin.Title, "title", "t", "", "Binary data title to save.")
+	saveBinaryCmd.Flags().BytesBase64VarP(&saveBin.Body, "body", "b", nil, "Binary data to save.")
+	saveBinaryCmd.Flags().StringVarP(&saveBin.Comment, "comment", "c", "", "Comment for the saved binary data (optional).")
+	saveBinaryCmd.MarkFlagRequired("title")
+	saveBinaryCmd.MarkFlagRequired("body")
 }

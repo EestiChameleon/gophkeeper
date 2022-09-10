@@ -19,9 +19,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getTextCmd represents the getText command
-var getTextCmd = &cobra.Command{
-	Use:   "getText",
+// getBinaryCmd represents the getBinary command
+var getBinaryCmd = &cobra.Command{
+	Use:   "getBinary",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -45,11 +45,11 @@ to quickly create a Cobra application.`,
 			fmt.Println("User not found. Please register.")
 			return
 		}
-		text, ok := vault.Text[getText.Title]
+		binData, ok := vault.Bin[getBin.Title]
 		// local version exists - return it.
 		if ok {
 			msg := fmt.Sprintf("Title: %s\nBody: %s\nComment: %s\nMake sure you have the latest version by synchronizing your vault.",
-				text.Title, text.Body, text.Comment)
+				binData.Title, binData.Body, binData.Comment)
 			fmt.Println(msg)
 			return
 		}
@@ -69,7 +69,7 @@ to quickly create a Cobra application.`,
 		ctxWTKN := metadata.AppendToOutgoingContext(ctxWTO, "authorization", "Bearer "+jwt)
 
 		// send data to server and receive JWT in case of success. then save it in Users
-		response, err := c.GetText(ctxWTKN, &getText)
+		response, err := c.GetBin(ctxWTKN, &getBin)
 		if err != nil {
 			st, ok := status.FromError(err)
 			if !ok {
@@ -94,22 +94,21 @@ to quickly create a Cobra application.`,
 
 		// successful response
 		// save pair to local
-		vault.Text[response.Text.Title] = response.Text
+		vault.Bin[response.BinData.Title] = response.BinData
 		// return pair data
 		msg := fmt.Sprintf("Title: %s\nBody: %s\nComment: %s\nMake sure you have the latest version by synchronizing your vault.",
-			response.Text.Title, response.Text.Body, response.Text.Comment)
+			response.BinData.Title, response.BinData.Body, response.BinData.Comment)
 		fmt.Println(response.GetStatus())
 		fmt.Println(msg)
 	},
 }
 
 var (
-	getText pb.GetTextRequest
+	getBin pb.GetBinRequest
 )
 
 func init() {
-	rootCmd.AddCommand(getTextCmd)
-	getTextCmd.Flags().StringVarP(&getPair.Title, "title", "t", "", "Text title to search for.")
-	getTextCmd.MarkFlagRequired("title")
-
+	rootCmd.AddCommand(getBinaryCmd)
+	getBinaryCmd.Flags().StringVarP(&getBin.Title, "title", "t", "", "Text title to search for.")
+	getBinaryCmd.MarkFlagRequired("title")
 }

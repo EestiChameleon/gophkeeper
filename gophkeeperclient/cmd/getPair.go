@@ -41,7 +41,7 @@ Usage: gophkeeperclient getPair --title=<title>.`,
 			fmt.Println("User not found. Please register.")
 			return
 		}
-		pair, ok := vault.Pair[delPair.Title]
+		pair, ok := vault.Pair[getPair.Title]
 		// local version exists - return it.
 		if ok {
 			msg := fmt.Sprintf("Title: %s\nLogin: %s\nPassword: %s\nComment: %s\nMake sure you have the latest version by synchronizing your vault.",
