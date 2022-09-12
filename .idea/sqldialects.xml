@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/../gophkeeper/server/migrations/sqlscripts/1_db_tables.down.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/../gophkeeper/server/migrations/sqlscripts/1_db_tables.up.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/../gophkeeper/server/migrations/sqlscripts/2_db_functions.up.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/server/migrations/sqlscripts/1_db_tables.down.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/server/migrations/sqlscripts/1_db_tables.up.sql" dialect="PostgreSQL" />
   </component>
 </project>

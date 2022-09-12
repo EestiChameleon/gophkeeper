@@ -26,7 +26,7 @@ Usage: gophkeeperclient saveCard --title=<title_for_saved_card> --number=<card_n
 		// check for user auth
 		user, err := user.Current()
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln(`current user `, err)
 		}
 		jwt, ok := clstor.Users[user.Username]
 		if !ok {
@@ -40,14 +40,17 @@ Usage: gophkeeperclient saveCard --title=<title_for_saved_card> --number=<card_n
 			return
 		}
 		// search for local version
-		card, ok := vault.Bin[saveCard.Title]
+		card, ok := vault.Card[saveCard.Title]
+		fmt.Println("card -", card)
+		fmt.Println("ok -", ok)
 		// local version exists - return it.
 		if ok {
 			// we save new version - so we take current version + 1
 			saveCard.Version = card.Version + 1
+		} else {
+			// not found - version = 1 - first new
+			saveCard.Version = 1
 		}
-		// not found - version = 1 - first new
-		saveCard.Version = 1
 
 		// request with 3s timeout. ctx WithTimeOut
 		ctxWTO, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -55,13 +58,14 @@ Usage: gophkeeperclient saveCard --title=<title_for_saved_card> --number=<card_n
 
 		c, err := grpcclient.DialUp()
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln(`connect err`, err)
 			return
 		}
 
 		// Add token to gRPC Request. ctx WithToKeN
 		ctxWTKN := metadata.AppendToOutgoingContext(ctxWTO, "authorization", "Bearer "+jwt)
 
+		fmt.Println(saveCard)
 		// send data to server and receive JWT in case of success. then save it in Users
 		response, err := c.PostCard(ctxWTKN, &pb.PostCardRequest{Card: &saveCard})
 		if err != nil {
@@ -75,17 +79,10 @@ Usage: gophkeeperclient saveCard --title=<title_for_saved_card> --number=<card_n
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "success" {
-			log.Println(response.GetStatus())
-			msg := fmt.Sprintf("Request failed.\nStatus: %v\nPlease try again", response.GetStatus())
-			fmt.Println(msg)
-			return
-		}
 		// save data to local
 		vault.Card[saveCard.Title] = &saveCard
 		// successful response
-		fmt.Println("New data successfully saved")
+		fmt.Println(response.GetStatus())
 	},
 }
 
@@ -97,7 +94,7 @@ func init() {
 	rootCmd.AddCommand(saveCardCmd)
 	saveCardCmd.Flags().StringVarP(&saveCard.Title, "title", "t", "", "Card title to save.")
 	saveCardCmd.Flags().StringVarP(&saveCard.Number, "number", "n", "", "Card number to save.")
-	saveCardCmd.Flags().StringVarP(&saveCard.Expdate, "expdate", "xd", "", "Card expiration date to save.")
+	saveCardCmd.Flags().StringVarP(&saveCard.Expdate, "expdate", "e", "", "Card expiration date to save.")
 	saveCardCmd.Flags().StringVarP(&saveCard.Comment, "comment", "c", "", "Comment for the saved card data (optional).")
 	saveCardCmd.MarkFlagRequired("title")
 	saveCardCmd.MarkFlagRequired("number")

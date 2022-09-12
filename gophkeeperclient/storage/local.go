@@ -5,6 +5,7 @@ import (
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/cfg"
 	"github.com/EestiChameleon/gophkeeper/models"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
+	"io/ioutil"
 	"log"
 	"os"
 )
@@ -63,11 +64,10 @@ func initLocal() error {
 	}
 	defer fv.Close()
 
-	// read file
-	vbytes, err := os.ReadFile(cfg.VaultFileStoragePath)
+	// read the whole file at once
+	vbytes, err := ioutil.ReadFile(cfg.VaultFileStoragePath)
 	if err != nil {
-		log.Println(err)
-		return err
+		panic(err)
 	}
 
 	// parse file data
@@ -98,25 +98,6 @@ func MakeVaultProto() *models.VaultProto {
 	}
 }
 
-// InitNewUserLocalStorage initializes a new VaultData for the provided user id. First it checks for user id existence.
-// Like this we have a map[userID]userVaultData.
-func InitNewUserLocalStorage(usrID string) {
-	_, ok := Users[usrID]
-	if !ok {
-		Local[usrID] = MakeVaultProto()
-	}
-}
-
-func GetUserVaultProto(usrID string) (*models.VaultProto, bool) {
-	data, ok := Local[usrID]
-	return data, ok
-}
-
-// Shutdown method closes the storage file with saving the latest data.
-func ShutdownMemory() error {
-	return UpdateFiles()
-}
-
 func UpdateFiles() error {
 	// prepare users data
 	usersJSONByte, err := json.Marshal(Users)
@@ -134,6 +115,7 @@ func UpdateFiles() error {
 		log.Println(err)
 		return err
 	}
+
 	if err = UpdateFile(cfg.VaultFileStoragePath, vaultJSONByte); err != nil {
 		return err
 	}
@@ -143,19 +125,5 @@ func UpdateFiles() error {
 
 // UpdateFile method rewrite the file with the latest data.
 func UpdateFile(path string, data []byte) error {
-	// open & rewrite file
-	f, err := os.OpenFile(path, os.O_WRONLY, 0777)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer f.Close()
-
-	_, err = f.Write(data)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	return nil
+	return ioutil.WriteFile(path, data, 0644)
 }

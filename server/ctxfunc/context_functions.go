@@ -7,7 +7,10 @@ import (
 
 type ctxkey string
 
-var userID ctxkey = "userID"
+var (
+	userID ctxkey = "userID"
+	uID    int
+)
 
 var (
 	ErrNotAuthenticated = errors.New("not authenticated")
@@ -23,4 +26,12 @@ func GetUserIDFromCTX(ctx context.Context) int {
 
 func SetUserIDToCTX(ctx context.Context, value int) context.Context {
 	return context.WithValue(ctx, userID, value)
+}
+
+func SetUserID(value int) {
+	uID = value
+}
+
+func GetUserID() int {
+	return uID
 }

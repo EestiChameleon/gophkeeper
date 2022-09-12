@@ -44,7 +44,7 @@ Usage: gophkeeperclient delBinary --title=<title>.`,
 		}
 		_, ok = vault.Bin[delBin.Title]
 		// local version doesn't exist: nothing to delete.
-		if ok {
+		if !ok {
 			msg := fmt.Sprintf("Nothing found for title: %s\nMake sure you have the latest version by synchronizing your vault.",
 				delBin.Title)
 			fmt.Println(msg)
@@ -75,17 +75,6 @@ Usage: gophkeeperclient delBinary --title=<title>.`,
 			}
 			msg := fmt.Sprintf("Request failed.\nStatusCode: %v\nMessage: %s", st.Code(), st.Message())
 			fmt.Println(msg)
-			return
-		}
-
-		// check server response
-		if response.GetStatus() != "success" {
-			if response.GetStatus() == "not found" {
-				fmt.Println("Nothing found for the requested title:", delBin.Title)
-				return
-			}
-			log.Println(response.GetStatus())
-			fmt.Println("request failed. please try again.")
 			return
 		}
 

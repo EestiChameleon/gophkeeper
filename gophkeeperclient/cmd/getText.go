@@ -81,17 +81,6 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "success" {
-			if response.GetStatus() == "not found" {
-				fmt.Println("Nothing found for the requested title:", getPair.Title)
-				return
-			}
-			log.Println(response.GetStatus())
-			fmt.Println("request failed. please try again.")
-			return
-		}
-
 		// successful response
 		// save pair to local
 		vault.Text[response.Text.Title] = response.Text
@@ -109,7 +98,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(getTextCmd)
-	getTextCmd.Flags().StringVarP(&getPair.Title, "title", "t", "", "Text title to search for.")
+	getTextCmd.Flags().StringVarP(&getText.Title, "title", "t", "", "Text title to search for.")
 	getTextCmd.MarkFlagRequired("title")
 
 }

@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS gk_card
     id         serial primary key,
     user_id    int                not null,
     title      varchar            not null,
-    number     varchar(16)        not null,
-    expdate    varchar(12)        not null,
+    number     varchar(19)        not null,
+    expiration_date    varchar(12)        not null,
     comment    varchar,
     version    smallint default 1 not null ,
     deleted_at timestamp

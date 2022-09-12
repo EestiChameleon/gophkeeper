@@ -49,9 +49,10 @@ Usage: gophkeeperclient savePair --title=<title_for_saved_login&password> --logi
 		if ok {
 			// we save new version - so we take current version + 1
 			savePair.Version = pair.Version + 1
+		} else {
+			// not found - version = 1 - first new
+			savePair.Version = 1
 		}
-		// not found - version = 1 - first new
-		savePair.Version = 1
 
 		// request with 3s timeout. ctx WithTimeOut
 		ctxWTO, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -79,19 +80,11 @@ Usage: gophkeeperclient savePair --title=<title_for_saved_login&password> --logi
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "success" {
-			log.Println(response.GetStatus())
-			msg := fmt.Sprintf("Request failed.\nStatus: %v\nPlease try again", response.GetStatus())
-			fmt.Println(msg)
-			return
-		}
-
 		// successful response
 		// save pair to local
 		vault.Pair[savePair.Title] = &savePair
 		// return pair data
-		fmt.Println("New data successfully saved")
+		fmt.Println(response.GetStatus())
 
 	},
 }

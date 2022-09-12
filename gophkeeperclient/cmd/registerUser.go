@@ -19,7 +19,6 @@ var registerUserCmd = &cobra.Command{
 	Long: `
 This command register a new user.
 Usage: gophkeeperclient registerUser --login=<login> --password=<password>.`,
-	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		// get current user from os/user. Like this we can locally identify if the user changed.
 		u, err := user.Current()
@@ -46,19 +45,10 @@ Usage: gophkeeperclient registerUser --login=<login> --password=<password>.`,
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "registered" {
-			log.Println(response.GetStatus())
-			fmt.Println("request failed. please try again.")
-			return
-		}
-
 		// save local pair - localUserName -> JWT
 		clstor.Users[u.Username] = response.GetJwt()
 		// init for the new user local storage
 		clstor.Local[u.Username] = clstor.MakeVaultProto()
-		// debug: check created entities
-		fmt.Println(clstor.Users, clstor.Local)
 		// return response
 		fmt.Println(response.GetStatus())
 	},

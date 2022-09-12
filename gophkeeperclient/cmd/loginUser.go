@@ -46,13 +46,6 @@ Usage: gophkeeperclient loginUser --login=<login> --password=<password>.`,
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "login successful" {
-			log.Println(response.GetStatus())
-			fmt.Println("request failed. please try again.")
-			return
-		}
-
 		// save local username = JWT for server
 		clstor.Users[u.Username] = response.GetJwt()
 		// save local user data

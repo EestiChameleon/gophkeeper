@@ -40,7 +40,7 @@ Usage: gophkeeperclient delCard --title=<title>.`,
 		}
 		_, ok = vault.Card[delCard.Title]
 		// local version doesn't exist: nothing to delete.
-		if ok {
+		if !ok {
 			msg := fmt.Sprintf("Nothing found for title: %s\nMake sure you have the latest version by synchronizing your vault.",
 				delCard.Title)
 			fmt.Println(msg)
@@ -71,17 +71,6 @@ Usage: gophkeeperclient delCard --title=<title>.`,
 			}
 			msg := fmt.Sprintf("Request failed.\nStatusCode: %v\nMessage: %s", st.Code(), st.Message())
 			fmt.Println(msg)
-			return
-		}
-
-		// check server response
-		if response.GetStatus() != "success" {
-			if response.GetStatus() == "not found" {
-				fmt.Println("Nothing found for the requested title:", delCard.Title)
-				return
-			}
-			log.Println(response.GetStatus())
-			fmt.Println("request failed. please try again.")
 			return
 		}
 

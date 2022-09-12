@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/EestiChameleon/gophkeeper/models"
 	"github.com/EestiChameleon/gophkeeper/server/cfg"
 	"github.com/EestiChameleon/gophkeeper/server/ctxfunc"
 	"github.com/EestiChameleon/gophkeeper/server/router/interceptors"
@@ -63,9 +62,7 @@ func (g *GRPCServer) RegisterUser(ctx context.Context, in *pb.RegisterUserReques
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 
-	encryptPass := service.EncryptPass(in.ServicePass)
-	var usrID int
-	err := storage.GetSingleValue("users_add", &usrID, in.ServiceLogin, encryptPass)
+	usrID, err := service.UserAdd(in.ServiceLogin, in.ServicePass)
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "failed to register new user")
@@ -102,7 +99,7 @@ func (g *GRPCServer) LoginUser(ctx context.Context, in *pb.LoginUserRequest) (*p
 		}
 	}
 
-	data, err := storage.GetAllUserDataLastVersion(ctxfunc.GetUserIDFromCTX(ctx))
+	data, err := storage.GetAllUserDataLastVersion(ctxfunc.GetUserID())
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "failed to obtain latest data")
@@ -125,8 +122,8 @@ func (g *GRPCServer) GetPair(ctx context.Context, in *pb.GetPairRequest) (*pb.Ge
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(models.Pair)
-	err := storage.GetOneRow("pair_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
+
+	data, err := service.PairByTitle(in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			return &pb.GetPairResponse{
@@ -155,17 +152,15 @@ func (g *GRPCServer) PostPair(ctx context.Context, in *pb.PostPairRequest) (*pb.
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
-	dbPair := new(models.Pair)
-	err := storage.GetOneRow("pair_by_title", dbPair, in.Pair.Title, ctxfunc.GetUserIDFromCTX(ctx))
+
+	dbPair, err := service.PairByTitle(in.Pair.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedDBQuery)
 	}
 	// in case not found - we can save passed version. No overwriting data.
 	if errors.Is(err, storage.ErrNotFound) {
-		var resultID int
-		err = storage.GetSingleValue("pair_add", &resultID,
-			ctxfunc.GetUserIDFromCTX(ctx), in.Pair.Title, in.Pair.Login, in.Pair.Pass, in.Pair.Comment, in.Pair.Version)
+		err = service.PairAdd(ctxfunc.GetUserIDFromCTX(ctx), in.Pair.Title, in.Pair.Login, in.Pair.Pass, in.Pair.Comment, in.Pair.Version)
 		if err != nil {
 			log.Println(err)
 			return nil, status.Error(codes.Internal, failedToSaveNewVersion)
@@ -185,9 +180,7 @@ func (g *GRPCServer) PostPair(ctx context.Context, in *pb.PostPairRequest) (*pb.
 	}
 
 	// db version is deleted OR received version is the latest => save
-	var resultID int
-	err = storage.GetSingleValue("pair_add", &resultID,
-		ctxfunc.GetUserIDFromCTX(ctx), in.Pair.Title, in.Pair.Login, in.Pair.Pass, in.Pair.Comment, in.Pair.Version)
+	err = service.PairAdd(ctxfunc.GetUserIDFromCTX(ctx), in.Pair.Title, in.Pair.Login, in.Pair.Pass, in.Pair.Comment, in.Pair.Version)
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedToSaveNewVersion)
@@ -201,14 +194,10 @@ func (g *GRPCServer) DelPair(ctx context.Context, in *pb.DelPairRequest) (*pb.De
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 
-	var affectedRows int // just to put something in return param in function
-	err := storage.GetSingleValue("pair_del_by_title", &affectedRows, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
-	if err != nil {
+	if err := service.PairDelete(in.Title, ctxfunc.GetUserIDFromCTX(ctx)); err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
-
-	log.Println("affected rows:", affectedRows)
 
 	return &pb.DelPairResponse{Status: "success"}, nil
 }
@@ -217,8 +206,8 @@ func (g *GRPCServer) GetText(ctx context.Context, in *pb.GetTextRequest) (*pb.Ge
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(models.Text)
-	err := storage.GetOneRow("text_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
+
+	data, err := service.TextByTitle(in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			return &pb.GetTextResponse{
@@ -246,17 +235,14 @@ func (g *GRPCServer) PostText(ctx context.Context, in *pb.PostTextRequest) (*pb.
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
-	dbText := new(models.Text)
-	err := storage.GetOneRow("text_by_title", dbText, in.Text.Title, ctxfunc.GetUserIDFromCTX(ctx))
+	dbText, err := service.TextByTitle(in.Text.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedDBQuery)
 	}
 	// in case not found - we can save version 1? or passed version?
 	if errors.Is(err, storage.ErrNotFound) {
-		var resultID int
-		err = storage.GetSingleValue("text_add", &resultID,
-			ctxfunc.GetUserIDFromCTX(ctx), in.Text.Title, in.Text.Body, in.Text.Comment, in.Text.Version)
+		err = service.TextAdd(ctxfunc.GetUserIDFromCTX(ctx), in.Text.Title, in.Text.Body, in.Text.Comment, in.Text.Version)
 		if err != nil {
 			log.Println(err)
 			return nil, status.Error(codes.Internal, failedToSaveNewVersion)
@@ -276,9 +262,7 @@ func (g *GRPCServer) PostText(ctx context.Context, in *pb.PostTextRequest) (*pb.
 	}
 
 	// db version is deleted OR received version is the latest => save
-	var resultID int
-	err = storage.GetSingleValue("text_add", &resultID,
-		ctxfunc.GetUserIDFromCTX(ctx), in.Text.Title, in.Text.Body, in.Text.Comment, in.Text.Version)
+	err = service.TextAdd(ctxfunc.GetUserIDFromCTX(ctx), in.Text.Title, in.Text.Body, in.Text.Comment, in.Text.Version)
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedToSaveNewVersion)
@@ -292,14 +276,11 @@ func (g *GRPCServer) DelText(ctx context.Context, in *pb.DelTextRequest) (*pb.De
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 
-	var affectedRows int // just to put something in return param in function
-	err := storage.GetSingleValue("text_del_by_title", &affectedRows, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
+	err := service.TextDelete(in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
-
-	log.Println("affected rows:", affectedRows)
 
 	return &pb.DelTextResponse{Status: "success"}, nil
 }
@@ -308,8 +289,7 @@ func (g *GRPCServer) GetBin(ctx context.Context, in *pb.GetBinRequest) (*pb.GetB
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(models.Bin)
-	err := storage.GetOneRow("bin_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
+	data, err := service.BinByTitle(in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			return &pb.GetBinResponse{
@@ -337,22 +317,19 @@ func (g *GRPCServer) PostBin(ctx context.Context, in *pb.PostBinRequest) (*pb.Po
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
-	dbBin := new(models.Bin)
-	err := storage.GetOneRow("bin_by_title", dbBin, in.BinData.Title, ctxfunc.GetUserIDFromCTX(ctx))
+	dbBin, err := service.BinByTitle(in.BinData.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedDBQuery)
 	}
-	// in case not found - we can save version 1? or passed version?
+	// in case not found - we save passed version = 1
 	if errors.Is(err, storage.ErrNotFound) {
-		var resultID int
-		err = storage.GetSingleValue("bin_add", &resultID,
-			ctxfunc.GetUserIDFromCTX(ctx), in.BinData.Title, in.BinData.Body, in.BinData.Comment, in.BinData.Version)
+		err = service.BinAdd(ctxfunc.GetUserIDFromCTX(ctx), in.BinData.Title, in.BinData.Body, in.BinData.Comment, in.BinData.Version)
 		if err != nil {
 			log.Println(err)
 			return nil, status.Error(codes.Internal, failedToSaveNewVersion)
 		}
-		// new record saved (first version?)
+		// new record saved
 		return &pb.PostBinResponse{Status: "success"}, nil
 	}
 
@@ -367,9 +344,7 @@ func (g *GRPCServer) PostBin(ctx context.Context, in *pb.PostBinRequest) (*pb.Po
 	}
 
 	// db version is deleted OR received version is the latest => save
-	var resultID int
-	err = storage.GetSingleValue("bin_add", &resultID,
-		ctxfunc.GetUserIDFromCTX(ctx), in.BinData.Title, in.BinData.Body, in.BinData.Comment, in.BinData.Version)
+	err = service.BinAdd(ctxfunc.GetUserIDFromCTX(ctx), in.BinData.Title, in.BinData.Body, in.BinData.Comment, in.BinData.Version)
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedToSaveNewVersion)
@@ -383,14 +358,11 @@ func (g *GRPCServer) DelBin(ctx context.Context, in *pb.DelBinRequest) (*pb.DelB
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 
-	var affectedRows int // just to put something in return param in function
-	err := storage.GetSingleValue("bin_del_by_title", &affectedRows, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
+	err := service.BinDelete(in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
-
-	log.Println("affected rows:", affectedRows)
 
 	return &pb.DelBinResponse{Status: "success"}, nil
 }
@@ -399,8 +371,8 @@ func (g *GRPCServer) GetCard(ctx context.Context, in *pb.GetCardRequest) (*pb.Ge
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	data := new(models.Card)
-	err := storage.GetOneRow("card_by_title", data, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
+
+	data, err := service.CardByTitle(in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			return &pb.GetCardResponse{
@@ -416,7 +388,7 @@ func (g *GRPCServer) GetCard(ctx context.Context, in *pb.GetCardRequest) (*pb.Ge
 		Card: &pb.Card{
 			Title:   data.Title,
 			Number:  data.Number,
-			Expdate: data.ExpDate,
+			Expdate: data.ExpirationDate,
 			Comment: data.Comment,
 			Version: data.Version,
 		},
@@ -429,17 +401,15 @@ func (g *GRPCServer) PostCard(ctx context.Context, in *pb.PostCardRequest) (*pb.
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
-	dbCard := new(models.Card)
-	err := storage.GetOneRow("card_by_title", dbCard, in.Card.Title, ctxfunc.GetUserIDFromCTX(ctx))
+	dbCard, err := service.CardByTitle(in.Card.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedDBQuery)
 	}
+
 	// in case not found - we can save version 1? or passed version?
 	if errors.Is(err, storage.ErrNotFound) {
-		var resultID int
-		err = storage.GetSingleValue("card_add", &resultID,
-			ctxfunc.GetUserIDFromCTX(ctx), in.Card.Title, in.Card.Number, in.Card.Expdate, in.Card.Comment, in.Card.Version)
+		err = service.CardAdd(ctxfunc.GetUserIDFromCTX(ctx), in.Card.Title, in.Card.Number, in.Card.Expdate, in.Card.Comment, in.Card.Version)
 		if err != nil {
 			log.Println(err)
 			return nil, status.Error(codes.Internal, failedToSaveNewVersion)
@@ -459,9 +429,7 @@ func (g *GRPCServer) PostCard(ctx context.Context, in *pb.PostCardRequest) (*pb.
 	}
 
 	// db version is deleted OR received version is the latest => save
-	var resultID int
-	err = storage.GetSingleValue("card_add", &resultID,
-		ctxfunc.GetUserIDFromCTX(ctx), in.Card.Title, in.Card.Number, in.Card.Expdate, in.Card.Comment, in.Card.Version)
+	err = service.CardAdd(ctxfunc.GetUserIDFromCTX(ctx), in.Card.Title, in.Card.Number, in.Card.Expdate, in.Card.Comment, in.Card.Version)
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, failedToSaveNewVersion)
@@ -475,14 +443,11 @@ func (g *GRPCServer) DelCard(ctx context.Context, in *pb.DelCardRequest) (*pb.De
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 
-	var affectedRows int // just to put something in return param in function
-	err := storage.GetSingleValue("card_del_by_title", &affectedRows, in.Title, ctxfunc.GetUserIDFromCTX(ctx))
+	err := service.CardDelete(in.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "Delete failed. Please try again")
 	}
-
-	log.Println("affected rows:", affectedRows)
 
 	return &pb.DelCardResponse{Status: "success"}, nil
 }

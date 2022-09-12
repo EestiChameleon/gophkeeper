@@ -5,7 +5,16 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
+	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
+	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
+	pb "github.com/EestiChameleon/gophkeeper/proto"
+	"google.golang.org/grpc/metadata"
+	"log"
+	"os/user"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -21,20 +30,57 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("syncVault called")
+		// get current user from os/user. Like this we can locally identify if the user changed.
+		u, err := user.Current()
+		if err != nil {
+			log.Fatalln(err)
+			return
+		}
+		jwt, ok := clstor.Users[u.Username]
+		if !ok {
+			fmt.Println("User not authenticated.")
+			return
+		}
+
+		// request with 3s timeout.
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+
+		// Add token to gRPC Request. ctx WithToKeN
+		ctxWTKN := metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+jwt)
+
+		c, err := grpcclient.DialUp()
+		if err != nil {
+			log.Fatalln(err)
+			return
+		}
+
+		// send data to server and receive all users data.
+		response, err := c.SyncVault(ctxWTKN, &syncData)
+		if err != nil {
+			log.Println(`[ERROR]:`, err)
+			fmt.Println("request failed. please try again.")
+			return
+		}
+
+		// check server response
+		if response.GetStatus() != "success" {
+			log.Println(response.GetStatus())
+			fmt.Println("request failed. please try again.")
+			return
+		}
+
+		// save local user data
+		clstor.Local[u.Username] = clserv.VaultSyncConvert(response)
+
+		fmt.Println(response.GetStatus())
 	},
 }
 
+var (
+	syncData pb.SyncVaultRequest
+)
+
 func init() {
 	rootCmd.AddCommand(syncVaultCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// syncVaultCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// syncVaultCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

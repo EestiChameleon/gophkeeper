@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/EestiChameleon/gophkeeper/models"
+	"github.com/EestiChameleon/gophkeeper/server/ctxfunc"
 	"github.com/EestiChameleon/gophkeeper/server/storage"
 )
 
@@ -18,13 +19,16 @@ type LoginData struct {
 
 func CheckAuthData(ld LoginData) (string, error) {
 	u := new(models.User)
-	if err := storage.GetOneRow("user_by_login", u, ld.Login); err != nil {
+	if err := storage.GetOneRow("SELECT id, login, password FROM gophkeeper_users WHERE login = $1;",
+		u, ld.Login); err != nil {
 		return "", err
 	}
 
 	if EncryptPass(ld.Password) != u.Password {
 		return "", ErrWrongAuthData
 	}
+
+	ctxfunc.SetUserID(u.ID)
 
 	return JWTEncodeUserID(u.ID)
 }

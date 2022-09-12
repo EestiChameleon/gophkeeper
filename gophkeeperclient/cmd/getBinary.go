@@ -81,17 +81,6 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "success" {
-			if response.GetStatus() == "not found" {
-				fmt.Println("Nothing found for the requested title:", getPair.Title)
-				return
-			}
-			log.Println(response.GetStatus())
-			fmt.Println("request failed. please try again.")
-			return
-		}
-
 		// successful response
 		// save pair to local
 		vault.Bin[response.BinData.Title] = response.BinData

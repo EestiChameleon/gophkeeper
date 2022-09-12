@@ -45,9 +45,10 @@ Usage: gophkeeperclient saveBinary --title=<title_for_saved_data> --body=<binary
 		if ok {
 			// we save new version - so we take current version + 1
 			saveBin.Version = bin.Version + 1
+		} else {
+			// not found - version = 1 - first new
+			saveBin.Version = 1
 		}
-		// not found - version = 1 - first new
-		saveBin.Version = 1
 
 		// request with 3s timeout. ctx WithTimeOut
 		ctxWTO, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -75,17 +76,10 @@ Usage: gophkeeperclient saveBinary --title=<title_for_saved_data> --body=<binary
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "success" {
-			log.Println(response.GetStatus())
-			msg := fmt.Sprintf("Request failed.\nStatus: %v\nPlease try again", response.GetStatus())
-			fmt.Println(msg)
-			return
-		}
 		// save data to local
 		vault.Bin[saveBin.Title] = &saveBin
 		// successful response
-		fmt.Println("New data successfully saved")
+		fmt.Println(response.GetStatus())
 	},
 }
 

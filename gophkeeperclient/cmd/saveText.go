@@ -45,9 +45,12 @@ Usage: gophkeeperclient saveText --title=<title_for_saved_text> --body=<text_con
 		if ok {
 			// we save new version - so we take current version + 1
 			saveText.Version = text.Version + 1
+		} else {
+			// not found - version = 1 - first new
+			saveText.Version = 1
 		}
-		// not found - version = 1 - first new
-		saveText.Version = 1
+
+		log.Println(saveText.Version)
 
 		// request with 3s timeout. ctx WithTimeOut
 		ctxWTO, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -75,19 +78,11 @@ Usage: gophkeeperclient saveText --title=<title_for_saved_text> --body=<text_con
 			return
 		}
 
-		// check server response
-		if response.GetStatus() != "success" {
-			log.Println(response.GetStatus())
-			msg := fmt.Sprintf("Request failed.\nStatus: %v\nPlease try again", response.GetStatus())
-			fmt.Println(msg)
-			return
-		}
-
 		// successful response
 		// save pair to local
 		vault.Text[saveText.Title] = &saveText
 		// return pair data
-		fmt.Println("New data successfully saved")
+		fmt.Println(response.GetStatus())
 
 	},
 }
