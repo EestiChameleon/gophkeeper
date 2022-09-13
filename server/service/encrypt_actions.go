@@ -13,16 +13,19 @@ var (
 	ErrInvalidToken = errors.New("failed to decode the provided Token")
 )
 
+// EncryptPass creates encrypted password based on md5 hash algorithm.
 func EncryptPass(pass string) string {
 	h := md5.New()
 	h.Write([]byte(pass))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
+// JWTEncodeUserID creates JWT with userID encoded inside.
 func JWTEncodeUserID(value interface{}) (string, error) {
 	return JWTEncode("sub", value)
 }
 
+// JWTEncode creates JWT with encoded inside passed value.
 func JWTEncode(key string, value interface{}) (string, error) {
 	algorithm := jwt.HmacSha256(cfg.CryptoKey)
 
@@ -41,6 +44,7 @@ func JWTEncode(key string, value interface{}) (string, error) {
 	return token, nil
 }
 
+// JWTDecodeUserID provides userID from JWT, if decoding is successful.
 func JWTDecodeUserID(token string) (int, error) {
 	value, err := JWTDecode(token, "sub")
 	if err != nil {
@@ -49,6 +53,7 @@ func JWTDecodeUserID(token string) (int, error) {
 	return int(value.(float64)), nil
 }
 
+// JWTDecode decodes the passed JWT and returns the interface value.
 func JWTDecode(token, key string) (interface{}, error) {
 	algorithm := jwt.HmacSha256(cfg.CryptoKey)
 

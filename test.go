@@ -1,35 +1,53 @@
 package main
 
 import (
+	"fmt"
+	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
+	pb "github.com/EestiChameleon/gophkeeper/proto"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
-	//err := migration.InitMigration()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	// working code ahead
-	//
-	//pool, err := pgxpool.Connect(context.Background(), "postgresql://localhost:5432/yandex_practicum_db?sslmode=disable")
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	////fmt.Println(pool.Ping(context.Background()))
-	//c := new(models.Card)
-	////err = GetRow(pool, "card_by_title", c, "ctitle2", 3)
-	////if err != nil {
-	////	log.Fatalln(err)
-	////}
-	//
-	//err = pool.QueryRow(context.Background(),
-	//	"SELECT id, user_id, title, number, expiration_date, comment, version, deleted_at FROM gk_card "+
-	//		"WHERE title = $1 and user_id = $2 ORDER BY version DESC LIMIT 1;",
-	//	"ctitle2", 3).Scan(&c.ID, &c.UserID, &c.Title, &c.Number, &c.ExpirationDate, &c.Comment, &c.Version, &c.DeletedAt)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//fmt.Println("is deleted:", c.DeletedAt.Valid)
-	//fmt.Println(c)
+	m1 := storage.MakeVaultProto()
+	m2 := storage.MakeVaultProto()
+	m3 := storage.MakeVaultProto()
+
+	m1.Pair["ptitle1"] = &pb.Pair{Title: "ptitle1", Version: 2} // this
+	m2.Pair["ptitle1"] = &pb.Pair{Title: "ptitle1", Version: 1}
+
+	m1.Pair["ptitle2"] = &pb.Pair{Title: "ptitle2", Version: 3}
+	m2.Pair["ptitle2"] = &pb.Pair{Title: "ptitle2", Version: 4} // this
+
+	m1.Card["ctitle1"] = &pb.Card{Title: "ctitle1", Version: 1}
+	m2.Card["ctitle1"] = &pb.Card{Title: "ctitle1", Version: 3} // this
+
+	m1.Text["ttitle1"] = &pb.Text{Title: "ttitle1", Version: 5} // this
+	m2.Text["ttitle1"] = &pb.Text{Title: "ttitle1", Version: 3}
+
+	for k, v := range m1.Pair {
+		if v.Version > m2.Pair[k].Version {
+			m3.Pair[k] = v
+		} else {
+			m3.Pair[k] = m2.Pair[k]
+		}
+	}
+
+	for k, v := range m1.Text {
+		if v.Version > m2.Text[k].Version {
+			m3.Text[k] = v
+		} else {
+			m3.Text[k] = m2.Text[k]
+		}
+	}
+
+	for k, v := range m1.Card {
+		if v.Version > m2.Card[k].Version {
+			m3.Card[k] = v
+		} else {
+			m3.Card[k] = m2.Card[k]
+		}
+	}
+
+	fmt.Println(m3)
 
 }

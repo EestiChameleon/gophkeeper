@@ -29,34 +29,37 @@ type GRPCServer struct {
 	pb.UnimplementedKeeperServer
 }
 
+// InitGRPCServer initializes a new gRPC server.
 func InitGRPCServer() (*GRPCServer, error) {
-	// создаём gRPC-сервер без зарегистрированной службы
+	// creates a gRPC server
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptors.AuthCheckGRPC))
-	// регистрируем сервис
+	// register the service
 	pb.RegisterKeeperServer(s, &GRPCServer{})
 
 	return &GRPCServer{serv: s}, nil
 }
 
+// Start launch the server.
 func (g *GRPCServer) Start() error {
-	// определяем порт для сервера
+	// determines the server port
 	listen, err := net.Listen("tcp", cfg.ServerAddress)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Сервер gRPC начал работу")
-	// получаем запрос gRPC
+	// listen for gRPC requests
 	return g.serv.Serve(listen)
 }
 
+// ShutDown graceful stops the server.
 func (g *GRPCServer) ShutDown() error {
 	g.serv.GracefulStop()
 	return nil
 }
 
-// RegisterUser .
+// RegisterUser handler creates new user. Returns JWT with userID encoded.
 func (g *GRPCServer) RegisterUser(ctx context.Context, in *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {
 	if in.ServiceLogin == `` || in.ServicePass == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -80,6 +83,7 @@ func (g *GRPCServer) RegisterUser(ctx context.Context, in *pb.RegisterUserReques
 	}, nil
 }
 
+// LoginUser authenticates the user. Provides the latest data from database and JWT.
 func (g *GRPCServer) LoginUser(ctx context.Context, in *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
 	if in.ServiceLogin == "" || in.ServicePass == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -118,6 +122,7 @@ func (g *GRPCServer) LoginUser(ctx context.Context, in *pb.LoginUserRequest) (*p
 	}, nil
 }
 
+// GetPair handler returns the found by title pair data.
 func (g *GRPCServer) GetPair(ctx context.Context, in *pb.GetPairRequest) (*pb.GetPairResponse, error) {
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -147,6 +152,8 @@ func (g *GRPCServer) GetPair(ctx context.Context, in *pb.GetPairRequest) (*pb.Ge
 	}, nil
 }
 
+// PostPair handler checks and saves new pair data to database.
+// Handler verifies, if the provided pair data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostPair(ctx context.Context, in *pb.PostPairRequest) (*pb.PostPairResponse, error) {
 	if in.Pair.Version < 0 || in.Pair.Login == `` || in.Pair.Title == `` || in.Pair.Pass == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -189,6 +196,7 @@ func (g *GRPCServer) PostPair(ctx context.Context, in *pb.PostPairRequest) (*pb.
 	return &pb.PostPairResponse{Status: "success"}, nil
 }
 
+// DelPair handler deletes the provided pair data by title.
 func (g *GRPCServer) DelPair(ctx context.Context, in *pb.DelPairRequest) (*pb.DelPairResponse, error) {
 	if in.Title == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -202,6 +210,7 @@ func (g *GRPCServer) DelPair(ctx context.Context, in *pb.DelPairRequest) (*pb.De
 	return &pb.DelPairResponse{Status: "success"}, nil
 }
 
+// GetText handler returns the found by title text data.
 func (g *GRPCServer) GetText(ctx context.Context, in *pb.GetTextRequest) (*pb.GetTextResponse, error) {
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -230,6 +239,8 @@ func (g *GRPCServer) GetText(ctx context.Context, in *pb.GetTextRequest) (*pb.Ge
 	}, nil
 }
 
+// PostText handler checks and saves new text data to database.
+// Handler verifies, if the provided text data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostText(ctx context.Context, in *pb.PostTextRequest) (*pb.PostTextResponse, error) {
 	if in.Text.Version < 0 || in.Text.Title == `` || in.Text.Body == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -271,6 +282,7 @@ func (g *GRPCServer) PostText(ctx context.Context, in *pb.PostTextRequest) (*pb.
 	return &pb.PostTextResponse{Status: "success"}, nil
 }
 
+// DelText handler deletes the provided text data by title.
 func (g *GRPCServer) DelText(ctx context.Context, in *pb.DelTextRequest) (*pb.DelTextResponse, error) {
 	if in.Title == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -285,6 +297,7 @@ func (g *GRPCServer) DelText(ctx context.Context, in *pb.DelTextRequest) (*pb.De
 	return &pb.DelTextResponse{Status: "success"}, nil
 }
 
+// GetBin handler returns the found by title binary data.
 func (g *GRPCServer) GetBin(ctx context.Context, in *pb.GetBinRequest) (*pb.GetBinResponse, error) {
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -312,6 +325,8 @@ func (g *GRPCServer) GetBin(ctx context.Context, in *pb.GetBinRequest) (*pb.GetB
 	}, nil
 }
 
+// PostBin handler checks and saves new binary data to database.
+// Handler verifies, if the provided binary data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostBin(ctx context.Context, in *pb.PostBinRequest) (*pb.PostBinResponse, error) {
 	if in.BinData.Version < 0 || in.BinData.Title == `` || len(in.BinData.Body) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -353,6 +368,7 @@ func (g *GRPCServer) PostBin(ctx context.Context, in *pb.PostBinRequest) (*pb.Po
 	return &pb.PostBinResponse{Status: "success"}, nil
 }
 
+// DelBin handler deletes the provided binary data by title.
 func (g *GRPCServer) DelBin(ctx context.Context, in *pb.DelBinRequest) (*pb.DelBinResponse, error) {
 	if in.Title == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -367,6 +383,7 @@ func (g *GRPCServer) DelBin(ctx context.Context, in *pb.DelBinRequest) (*pb.DelB
 	return &pb.DelBinResponse{Status: "success"}, nil
 }
 
+// GetCard handler returns the found by title card data.
 func (g *GRPCServer) GetCard(ctx context.Context, in *pb.GetCardRequest) (*pb.GetCardResponse, error) {
 	if in.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -396,6 +413,8 @@ func (g *GRPCServer) GetCard(ctx context.Context, in *pb.GetCardRequest) (*pb.Ge
 	}, nil
 }
 
+// PostCard handler checks and saves new card data to database.
+// Handler verifies, if the provided card data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostCard(ctx context.Context, in *pb.PostCardRequest) (*pb.PostCardResponse, error) {
 	if in.Card.Version < 0 || in.Card.Title == `` || in.Card.Number == `` || in.Card.Expdate == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
@@ -438,6 +457,7 @@ func (g *GRPCServer) PostCard(ctx context.Context, in *pb.PostCardRequest) (*pb.
 	return &pb.PostCardResponse{Status: "success"}, nil
 }
 
+// DelCard handler deletes the provided card data by title.
 func (g *GRPCServer) DelCard(ctx context.Context, in *pb.DelCardRequest) (*pb.DelCardResponse, error) {
 	if in.Title == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")

@@ -63,6 +63,7 @@ func (v *VaultStorage) SyncVault() error {
 	return nil
 }
 
+// ExecuteQuery is used for SQL queries that returns nothing. Like DELETE or UPDATE.
 func ExecuteQuery(query string, args ...interface{}) (int, error) {
 	rows, err := Vault.DB.Exec(ctxStorage, query, args...)
 	if err != nil {
@@ -72,7 +73,7 @@ func ExecuteQuery(query string, args ...interface{}) (int, error) {
 	return int(rows.RowsAffected()), nil
 }
 
-// GetSingleValue returns a SINGLE value (!) from sql query (it can be number of rows affected, id of the new inserted row, etc...)
+// GetSingleValue returns a SINGLE value (!) from sql query (it can be number of rows affected, id of the new inserted row, etc...).
 func GetSingleValue(query string, dest interface{}, args ...interface{}) (err error) {
 	if err = Vault.DB.QueryRow(ctxStorage, query, args...).Scan(dest); err != nil {
 		log.Println(err)
@@ -81,7 +82,7 @@ func GetSingleValue(query string, dest interface{}, args ...interface{}) (err er
 	return
 }
 
-// GetOneRow returns a data ROW (1 row) from sql query
+// GetOneRow returns a data ROW (1 row) from sql query.
 func GetOneRow(query string, dest interface{}, args ...interface{}) (err error) {
 	if err = pgxscan.Get(ctxStorage, Vault.DB, dest, query, args...); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -93,7 +94,7 @@ func GetOneRow(query string, dest interface{}, args ...interface{}) (err error) 
 	return
 }
 
-// GetAll returns a table with values from offset till limit params
+// GetAll returns a table with values from offset till limit params.
 func GetAll(query string, dest interface{}, args ...interface{}) (err error) {
 	if err = pgxscan.Select(ctxStorage, Vault.DB, dest, query, args...); err != nil {
 		log.Println(err)
@@ -102,6 +103,7 @@ func GetAll(query string, dest interface{}, args ...interface{}) (err error) {
 	return
 }
 
+// GetAllUserDataLastVersion returns all user's data found in proto format.
 func GetAllUserDataLastVersion(usrID int) (*models.ActualProtoData, error) {
 	var err error
 	data := new(models.ActualData)
@@ -125,6 +127,7 @@ func GetAllUserDataLastVersion(usrID int) (*models.ActualProtoData, error) {
 	return convertActualDataToProto(data), nil
 }
 
+// convertActualDataToProto converts local data structures, used for DB interactions, to gRPC proto structures.
 func convertActualDataToProto(in *models.ActualData) *models.ActualProtoData {
 	out := new(models.ActualProtoData)
 	for _, v := range in.Pairs {
@@ -146,6 +149,7 @@ func convertActualDataToProto(in *models.ActualData) *models.ActualProtoData {
 	return out
 }
 
+// convertPairToProto converts local Pair structure to proto Pair structure.
 func convertPairToProto(in *models.Pair) *pb.Pair {
 	return &pb.Pair{
 		Title:   in.Title,
@@ -156,6 +160,7 @@ func convertPairToProto(in *models.Pair) *pb.Pair {
 	}
 }
 
+// convertCardToProto converts local Card structure to proto Card structure.
 func convertCardToProto(in *models.Card) *pb.Card {
 	return &pb.Card{
 		Title:   in.Title,
@@ -166,6 +171,7 @@ func convertCardToProto(in *models.Card) *pb.Card {
 	}
 }
 
+// convertTextToProto converts local Text structure to proto Text structure.
 func convertTextToProto(in *models.Text) *pb.Text {
 	return &pb.Text{
 		Title:   in.Title,
@@ -175,6 +181,7 @@ func convertTextToProto(in *models.Text) *pb.Text {
 	}
 }
 
+// convertBinToProto converts local Bin structure to proto Bin structure.
 func convertBinToProto(in *models.Bin) *pb.Bin {
 	return &pb.Bin{
 		Title:   in.Title,

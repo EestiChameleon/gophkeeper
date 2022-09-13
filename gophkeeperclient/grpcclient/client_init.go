@@ -29,6 +29,7 @@ func ConnDown() error {
 	return clientConn.Close()
 }
 
+// ActiveConnection verifies if there is an active connection. Returns true in case of any active connection found.
 func ActiveConnection() bool {
 	return clientConn != nil
 }

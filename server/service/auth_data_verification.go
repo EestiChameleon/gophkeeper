@@ -17,6 +17,8 @@ type LoginData struct {
 	Password string `json:"password"`
 }
 
+// CheckAuthData verifies the provided login&password values.
+// If user found with such login and password - return JWT with encoded userID.
 func CheckAuthData(ld LoginData) (string, error) {
 	u := new(models.User)
 	if err := storage.GetOneRow("SELECT id, login, password FROM gophkeeper_users WHERE login = $1;",

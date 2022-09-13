@@ -6,6 +6,7 @@ import (
 	"log"
 )
 
+// UserAdd inserts new user in database.
 func UserAdd(login, pass string) (int, error) {
 	var usrID int
 	err := storage.GetSingleValue(
@@ -18,6 +19,7 @@ func UserAdd(login, pass string) (int, error) {
 	return usrID, nil
 }
 
+// PairByTitle provides pair data found in database by title and user id.
 func PairByTitle(title string, usrID int) (*models.Pair, error) {
 	data := new(models.Pair)
 	err := storage.GetOneRow(
@@ -28,6 +30,7 @@ func PairByTitle(title string, usrID int) (*models.Pair, error) {
 	return data, err
 }
 
+// PairAdd inserts new pair data in database.
 func PairAdd(uID int, title, login, pass, comment string, v uint32) error {
 	var resultID int
 	return storage.GetSingleValue("INSERT INTO gk_pair (user_id, title, login, pass, comment, version) "+
@@ -36,6 +39,7 @@ func PairAdd(uID int, title, login, pass, comment string, v uint32) error {
 		uID, title, login, pass, comment, v)
 }
 
+// PairDelete makes a soft delete of a pair data from database. Set deleted_at parameter to current_date.
 func PairDelete(title string, uID int) error {
 	affRows, err := storage.ExecuteQuery(
 		"UPDATE gk_pair SET deleted_at = current_timestamp WHERE title = $1 AND user_id = $2;",
@@ -44,6 +48,7 @@ func PairDelete(title string, uID int) error {
 	return err
 }
 
+// TextByTitle provides text data found in database by title and user id.
 func TextByTitle(title string, usrID int) (*models.Text, error) {
 	data := new(models.Text)
 	err := storage.GetOneRow(
@@ -54,6 +59,7 @@ func TextByTitle(title string, usrID int) (*models.Text, error) {
 	return data, err
 }
 
+// TextAdd inserts new text data in database.
 func TextAdd(uID int, title, body, comment string, v uint32) error {
 	var resultID int
 	return storage.GetSingleValue(
@@ -63,6 +69,7 @@ func TextAdd(uID int, title, body, comment string, v uint32) error {
 		uID, title, body, comment, v)
 }
 
+// TextDelete makes a soft delete of a text data from database. Set deleted_at parameter to current_date.
 func TextDelete(title string, uID int) error {
 	affRows, err := storage.ExecuteQuery(
 		"UPDATE gk_text SET deleted_at = current_timestamp "+
@@ -72,6 +79,7 @@ func TextDelete(title string, uID int) error {
 	return err
 }
 
+// BinByTitle provides binary data found in database by title and user id.
 func BinByTitle(title string, usrID int) (*models.Bin, error) {
 	data := new(models.Bin)
 	err := storage.GetOneRow(
@@ -82,6 +90,7 @@ func BinByTitle(title string, usrID int) (*models.Bin, error) {
 	return data, err
 }
 
+// BinAdd inserts new binary data in database.
 func BinAdd(uID int, title string, body []byte, comment string, v uint32) error {
 	var resultID int
 	return storage.GetSingleValue("INSERT INTO gk_bin (user_id, title, body, comment, version) "+
@@ -90,6 +99,7 @@ func BinAdd(uID int, title string, body []byte, comment string, v uint32) error 
 		uID, title, body, comment, v)
 }
 
+// BinDelete makes a soft delete of a binary data from database. Set deleted_at parameter to current_date.
 func BinDelete(title string, uID int) error {
 	affRows, err := storage.ExecuteQuery(
 		"UPDATE gk_bin SET deleted_at = current_timestamp WHERE title = $1 AND user_id = $2;",
@@ -98,6 +108,7 @@ func BinDelete(title string, uID int) error {
 	return err
 }
 
+// CardByTitle provides card data found in database by title and user id.
 func CardByTitle(title string, usrID int) (*models.Card, error) {
 	data := new(models.Card)
 	err := storage.GetOneRow(
@@ -108,6 +119,7 @@ func CardByTitle(title string, usrID int) (*models.Card, error) {
 	return data, err
 }
 
+// CardAdd inserts new card data in database.
 func CardAdd(uID int, title, number, expdate, comment string, v uint32) error {
 	var resultID int
 	return storage.GetSingleValue(
@@ -117,6 +129,7 @@ func CardAdd(uID int, title, number, expdate, comment string, v uint32) error {
 		uID, title, number, expdate, comment, v)
 }
 
+// CardDelete makes a soft delete of a card data from database. Set deleted_at parameter to current_date.
 func CardDelete(title string, uID int) error {
 	affRows, err := storage.ExecuteQuery(
 		"UPDATE gk_card SET deleted_at = current_timestamp WHERE title = $1 AND user_id = $2;",

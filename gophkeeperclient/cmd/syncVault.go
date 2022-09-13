@@ -22,13 +22,12 @@ import (
 // syncVaultCmd represents the syncVault command
 var syncVaultCmd = &cobra.Command{
 	Use:   "syncVault",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Synchronize your local vault with the server database.",
+	Long: `
+This command provides latest data from the server database.
+Then the database data, with version higher, that the local version, is saved to local storage.
+During the saving of local data to the database, in case of version conflict(database version is higher/newer), you will be alerted by a warning.
+Usage: gophkeeperclient syncVault`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// get current user from os/user. Like this we can locally identify if the user changed.
 		u, err := user.Current()
@@ -70,9 +69,11 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		// save local user data
-		clstor.Local[u.Username] = clserv.VaultSyncConvert(response)
+		//check for latest version data
+		syncVault := clserv.CombineVault(clstor.Local[u.Username], clserv.VaultSyncConvert(response))
 
+		// save actual data
+		clstor.Local[u.Username] = syncVault
 		fmt.Println(response.GetStatus())
 	},
 }

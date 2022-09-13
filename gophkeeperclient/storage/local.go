@@ -28,6 +28,7 @@ func InitStorage() (err error) {
 	return nil
 }
 
+// initUsers reads or creates the local user auth info file. Then parse the content to local memory.
 func initUsers() error {
 	// create/open file
 	fu, err := os.OpenFile(cfg.UsersFileStoragePath, os.O_RDONLY|os.O_CREATE, 0777)
@@ -52,6 +53,7 @@ func initUsers() error {
 	return nil
 }
 
+// initLocal reads or creates the local users data storage file. Then parse the content to local memory.
 func initLocal() error {
 	// second - open vault file
 	Local = make(map[string]*models.VaultProto)
@@ -98,6 +100,7 @@ func MakeVaultProto() *models.VaultProto {
 	}
 }
 
+// UpdateFiles rewrites local files with actual data.
 func UpdateFiles() error {
 	// prepare users data
 	usersJSONByte, err := json.Marshal(Users)
@@ -123,7 +126,7 @@ func UpdateFiles() error {
 	return nil
 }
 
-// UpdateFile method rewrite the file with the latest data.
+// UpdateFile method rewrite the file with the passed data.
 func UpdateFile(path string, data []byte) error {
 	return ioutil.WriteFile(path, data, 0644)
 }

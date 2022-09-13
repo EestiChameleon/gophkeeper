@@ -13,12 +13,12 @@ import (
 
 var (
 	SkipCheckMethods = map[string]struct{}{
-		"/gophkeeper.proto.Keeper/RegisterUser": {},
-		"/gophkeeper.proto.Keeper/LoginUser":    {},
+		"/gophkeeper.proto.Keeper/RegisterUser": {}, // we don't need to check the token
+		"/gophkeeper.proto.Keeper/LoginUser":    {}, // for these methods.
 	}
 )
 
-// AuthCheckGRPC
+// AuthCheckGRPC interceptor verifies the authentication bearer token.
 func AuthCheckGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	log.Println("--> unary interceptor: ", info.FullMethod)
 	// check for method, which doesn't need to be intercepted
