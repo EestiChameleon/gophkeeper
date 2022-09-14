@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
-	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
+	"github.com/EestiChameleon/gophkeeper/models"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -77,7 +77,7 @@ Usage: gophkeeperclient getCard --title=<title>.`,
 
 		// successful response
 		// save pair to local
-		vault.Card[response.Card.Title] = clserv.ProtoToModelsCard(response.Card)
+		vault.Card[response.Card.Title] = models.ProtoToModelsCard(response.Card)
 		// return pair data
 		msg := fmt.Sprintf("Title: %s\nNumber: %s\nExpiration date: %s\nComment: %s\nMake sure you have the latest version by synchronizing your vault.",
 			response.Card.Title, response.Card.Number, response.Card.Expdate, response.Card.Comment)

@@ -55,7 +55,9 @@ func main() {
 	// например закрыть соединение с базой данных,
 	// закрыть открытые файлы
 
-	storage.Vault.DB.Close()
+	if err = storage.Close(); err != nil {
+		log.Fatal(err)
+	}
 
 	log.Println("server gracefully shutdown: done")
 }

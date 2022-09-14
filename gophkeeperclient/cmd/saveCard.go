@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
-	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
+	"github.com/EestiChameleon/gophkeeper/models"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -81,7 +81,7 @@ Usage: gophkeeperclient saveCard --title=<title_for_saved_card> --number=<card_n
 		}
 
 		// save data to local
-		vault.Card[saveCard.Title] = clserv.ProtoToModelsCard(&saveCard)
+		vault.Card[saveCard.Title] = models.ProtoToModelsCard(&saveCard)
 		// successful response
 		fmt.Println(response.GetStatus())
 	},

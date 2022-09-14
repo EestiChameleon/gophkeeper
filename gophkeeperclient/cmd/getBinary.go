@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
-	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
+	"github.com/EestiChameleon/gophkeeper/models"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -81,7 +81,7 @@ Usage: gophkeeperclient getBinary --title=<title>.`,
 
 		// successful response
 		// save pair to local
-		vault.Bin[response.BinData.Title] = clserv.ProtoToModelsBin(response.BinData)
+		vault.Bin[response.BinData.Title] = models.ProtoToModelsBin(response.BinData)
 		// return pair data
 		msg := fmt.Sprintf("Title: %s\nBody: %s\nComment: %s\nMake sure you have the latest version by synchronizing your vault.",
 			response.BinData.Title, response.BinData.Body, response.BinData.Comment)

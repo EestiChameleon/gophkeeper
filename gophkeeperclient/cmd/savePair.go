@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
-	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
+	"github.com/EestiChameleon/gophkeeper/models"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -83,7 +83,7 @@ Usage: gophkeeperclient savePair --title=<title_for_saved_login&password> --logi
 
 		// successful response
 		// save pair to local
-		vault.Pair[savePair.Title] = clserv.ProtoToModelsPair(&savePair)
+		vault.Pair[savePair.Title] = models.ProtoToModelsPair(&savePair)
 		// return pair data
 		fmt.Println(response.GetStatus())
 

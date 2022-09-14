@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"github.com/EestiChameleon/gophkeeper/models"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 )
@@ -23,24 +22,10 @@ func responsePairArrayToMap(pairs []*pb.Pair) map[string]*models.Pair {
 		return result
 	}
 	for _, v := range pairs {
-		result[v.Title] = ProtoToModelsPair(v)
+		result[v.Title] = models.ProtoToModelsPair(v)
 	}
 
 	return result
-}
-
-// ProtoToModelsPair converts proto Pair data to local Pair.
-func ProtoToModelsPair(p *pb.Pair) *models.Pair {
-	return &models.Pair{
-		ID:        0,
-		UserID:    0,
-		Title:     p.GetTitle(),
-		Login:     p.GetLogin(),
-		Pass:      p.GetPass(),
-		Comment:   p.GetComment(),
-		Version:   p.GetVersion(),
-		DeletedAt: sql.NullTime{},
-	}
 }
 
 // responseTextArrayToMap converts text slice to pair map.
@@ -50,23 +35,10 @@ func responseTextArrayToMap(texts []*pb.Text) map[string]*models.Text {
 		return result
 	}
 	for _, v := range texts {
-		result[v.Title] = ProtoToModelsText(v)
+		result[v.Title] = models.ProtoToModelsText(v)
 	}
 
 	return result
-}
-
-// ProtoToModelsText converts proto Text data to local Text.
-func ProtoToModelsText(t *pb.Text) *models.Text {
-	return &models.Text{
-		ID:        0,
-		UserID:    0,
-		Title:     t.GetTitle(),
-		Body:      t.GetBody(),
-		Comment:   t.GetComment(),
-		Version:   t.GetVersion(),
-		DeletedAt: sql.NullTime{},
-	}
 }
 
 // responseBinArrayToMap converts bin slice to bin map.
@@ -76,23 +48,10 @@ func responseBinArrayToMap(bins []*pb.Bin) map[string]*models.Bin {
 		return result
 	}
 	for _, v := range bins {
-		result[v.Title] = ProtoToModelsBin(v)
+		result[v.Title] = models.ProtoToModelsBin(v)
 	}
 
 	return result
-}
-
-// ProtoToModelsBin converts proto Binary data to local Binary.
-func ProtoToModelsBin(b *pb.Bin) *models.Bin {
-	return &models.Bin{
-		ID:        0,
-		UserID:    0,
-		Title:     b.GetTitle(),
-		Body:      b.GetBody(),
-		Comment:   b.GetComment(),
-		Version:   b.GetVersion(),
-		DeletedAt: sql.NullTime{},
-	}
 }
 
 // responseCardArrayToMap converts card slice to card map.
@@ -102,22 +61,8 @@ func responseCardArrayToMap(cards []*pb.Card) map[string]*models.Card {
 		return result
 	}
 	for _, v := range cards {
-		result[v.Title] = ProtoToModelsCard(v)
+		result[v.Title] = models.ProtoToModelsCard(v)
 	}
 
 	return result
-}
-
-// ProtoToModelsCard converts proto Card data to local Card.
-func ProtoToModelsCard(c *pb.Card) *models.Card {
-	return &models.Card{
-		ID:             0,
-		UserID:         0,
-		Title:          c.GetTitle(),
-		Number:         c.GetNumber(),
-		ExpirationDate: c.GetExpdate(),
-		Comment:        c.GetComment(),
-		Version:        c.GetVersion(),
-		DeletedAt:      sql.NullTime{},
-	}
 }
