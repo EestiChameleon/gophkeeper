@@ -15,18 +15,21 @@ var (
 	Local map[string]*models.VaultProto // user id :vault
 )
 
+/*
 // to think about?
 type LocalStorer interface {
-	Save(string, []byte)        // storageName string, dataJSON []byte Save("pair", [01010101])
-	Get(string, string) DataStr // Get("pair", "title") 1-where, 2 - what
-	Delete(string, string)      // Delete("pair", "title")
+	Save(string, []byte)        // storageName string, dataJSON []byte => Save("pair", [01010101])
+	Get(string, string) ClientData // Get("pair", "title") => 1-where(pair, text, bin, card), 2 - what
+	Delete(string, string)      // Delete("pair", "title") => 1-where(pair, text, bin, card), 2 - what
 }
 
-type DataStr struct {
-	Title   string
-	Data    []byte //login&pass / text / binary / cardNumber&expDate
-	Comment string
+// ClientData is used to simplify the data operations.
+type ClientData struct {
+	Title   string //data title
+	Data    []byte //login&pass / text / binary / cardNumber&expDate after marshal
+	Comment string //data comment
 }
+*/
 
 // InitStorage function initializes the storage data (check files & parse to local memory).
 func InitStorage() (err error) {
