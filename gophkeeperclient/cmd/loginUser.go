@@ -8,9 +8,9 @@ import (
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/metadata"
 	"log"
 	"os/user"
-	"time"
 )
 
 // loginUserCmd represents the loginUser command
@@ -29,8 +29,8 @@ Usage: gophkeeperclient loginUser --login=<login> --password=<password>.`,
 		}
 
 		// request with 3s timeout.
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
+		//ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		//defer cancel()
 
 		c, err := grpcclient.DialUp()
 		if err != nil {
@@ -38,20 +38,45 @@ Usage: gophkeeperclient loginUser --login=<login> --password=<password>.`,
 			return
 		}
 
-		// send data to server and receive JWT in case of success. then save it in Users
-		response, err := c.LoginUser(ctx, &loginUser)
+		// send data to server and receive JWT in case of success. then save it in Users.
+		logResp, err := c.LoginUser(context.Background(), &loginUser)
 		if err != nil {
 			log.Println(`[ERROR]:`, err)
 			fmt.Println("request failed. please try again.")
 			return
 		}
 
-		// save local username = JWT for server
-		clstor.Users[u.Username] = response.GetJwt()
-		// save local user data
-		clstor.Local[u.Username] = clserv.VaultSyncConvert(response.AllData)
+		fmt.Println("login status: ", logResp.GetStatus())
 
-		fmt.Println(response.GetStatus())
+		// save JWT
+		clstor.Users[u.Username] = logResp.Jwt
+		// check for nil vault
+		// update to latest data
+		locV, ok := clstor.Local[u.Username]
+		if !ok {
+			// local storage not initiated
+			locV = clstor.MakeVaultProto()
+			clstor.Local[u.Username] = locV
+		}
+
+		// after successful login - get JWT and send to server to synchronize data.
+		ctxWTKN := metadata.AppendToOutgoingContext(context.Background(), "authorization", "Bearer "+logResp.Jwt)
+
+		syncResp, err := c.SyncVault(ctxWTKN, &syncData)
+		if err != nil {
+			log.Println(`[ERROR]:`, err)
+			fmt.Println("request failed. please try again.")
+			return
+		}
+
+		fmt.Println("Get latest data from server: ", syncResp.GetStatus())
+
+		fmt.Print("Synchronizing: ")
+		updVault := clserv.CombineVault(clstor.Local[u.Username], clserv.VaultSyncConvert(syncResp))
+		//save actual data
+		clstor.Local[u.Username] = updVault
+
+		fmt.Println(syncResp.GetStatus())
 	},
 }
 

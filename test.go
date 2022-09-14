@@ -21,7 +21,6 @@ func main() {
 	m1.Card["ctitle1"] = &pb.Card{Title: "ctitle1", Version: 1}
 	m2.Card["ctitle1"] = &pb.Card{Title: "ctitle1", Version: 3} // this
 
-	m1.Text["ttitle1"] = &pb.Text{Title: "ttitle1", Version: 5} // this
 	m2.Text["ttitle1"] = &pb.Text{Title: "ttitle1", Version: 3}
 
 	for k, v := range m1.Pair {
@@ -45,6 +44,14 @@ func main() {
 			m3.Card[k] = v
 		} else {
 			m3.Card[k] = m2.Card[k]
+		}
+	}
+
+	for k, v := range m1.Bin {
+		if v.Version > m2.Bin[k].Version {
+			m3.Bin[k] = v
+		} else {
+			m3.Bin[k] = m2.Bin[k]
 		}
 	}
 

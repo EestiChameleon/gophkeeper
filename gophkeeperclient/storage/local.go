@@ -15,6 +15,19 @@ var (
 	Local map[string]*models.VaultProto // user id :vault
 )
 
+// to think about?
+type LocalStorer interface {
+	Save(string, []byte)        // storageName string, dataJSON []byte Save("pair", [01010101])
+	Get(string, string) DataStr // Get("pair", "title") 1-where, 2 - what
+	Delete(string, string)      // Delete("pair", "title")
+}
+
+type DataStr struct {
+	Title   string
+	Data    []byte //login&pass / text / binary / cardNumber&expDate
+	Comment string
+}
+
 // InitStorage function initializes the storage data (check files & parse to local memory).
 func InitStorage() (err error) {
 	if err = initUsers(); err != nil {
@@ -78,16 +91,6 @@ func initLocal() error {
 	}
 
 	return nil
-}
-
-// MakeVault initializes a new instance of Vault.
-func MakeVault() *models.Vault {
-	return &models.Vault{
-		Pair: make(map[string]*models.Pair),
-		Text: make(map[string]*models.Text),
-		Bin:  make(map[string]*models.Bin),
-		Card: make(map[string]*models.Card),
-	}
 }
 
 // MakeVaultProto initializes a new instance of VaultProto.

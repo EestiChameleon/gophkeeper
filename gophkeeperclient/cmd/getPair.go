@@ -96,5 +96,4 @@ func init() {
 	rootCmd.AddCommand(getPairCmd)
 	getPairCmd.Flags().StringVarP(&getPair.Title, "title", "t", "", "Pair title to search for.")
 	getPairCmd.MarkFlagRequired("title")
-
 }

@@ -18,6 +18,9 @@ func VaultSyncConvert(in *pb.SyncVaultResponse) *models.VaultProto {
 // responsePairArrayToMap converts pair slice to pair map.
 func responsePairArrayToMap(pairs []*pb.Pair) map[string]*pb.Pair {
 	result := make(map[string]*pb.Pair)
+	if len(pairs) < 1 {
+		return result
+	}
 	for _, v := range pairs {
 		result[v.Title] = v
 	}
@@ -28,6 +31,9 @@ func responsePairArrayToMap(pairs []*pb.Pair) map[string]*pb.Pair {
 // responseTextArrayToMap converts text slice to pair map.
 func responseTextArrayToMap(texts []*pb.Text) map[string]*pb.Text {
 	result := make(map[string]*pb.Text)
+	if len(texts) < 1 {
+		return result
+	}
 	for _, v := range texts {
 		result[v.Title] = v
 	}
@@ -38,6 +44,9 @@ func responseTextArrayToMap(texts []*pb.Text) map[string]*pb.Text {
 // responseBinArrayToMap converts bin slice to bin map.
 func responseBinArrayToMap(bins []*pb.Bin) map[string]*pb.Bin {
 	result := make(map[string]*pb.Bin)
+	if len(bins) < 1 {
+		return result
+	}
 	for _, v := range bins {
 		result[v.Title] = v
 	}
@@ -48,6 +57,9 @@ func responseBinArrayToMap(bins []*pb.Bin) map[string]*pb.Bin {
 // responseCardArrayToMap converts card slice to card map.
 func responseCardArrayToMap(cards []*pb.Card) map[string]*pb.Card {
 	result := make(map[string]*pb.Card)
+	if len(cards) < 1 {
+		return result
+	}
 	for _, v := range cards {
 		result[v.Title] = v
 	}

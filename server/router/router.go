@@ -103,20 +103,7 @@ func (g *GRPCServer) LoginUser(ctx context.Context, in *pb.LoginUserRequest) (*p
 		}
 	}
 
-	data, err := storage.GetAllUserDataLastVersion(ctxfunc.GetUserID())
-	if err != nil {
-		log.Println(err)
-		return nil, status.Error(codes.Internal, "failed to obtain latest data")
-	}
-
 	return &pb.LoginUserResponse{
-		AllData: &pb.SyncVaultResponse{
-			Pairs:   data.Pairs,
-			Texts:   data.Texts,
-			BinData: data.Bins,
-			Cards:   data.Cards,
-			Status:  "success",
-		},
 		Status: "login successful",
 		Jwt:    token,
 	}, nil

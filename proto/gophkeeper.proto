@@ -21,9 +21,8 @@ message LoginUserRequest{
 }
 
 message LoginUserResponse{
-  SyncVaultResponse allData = 1;
-  string status = 2;
-  string jwt = 3;
+  string status = 1;
+  string jwt = 2;
 }
 
 message Pair {

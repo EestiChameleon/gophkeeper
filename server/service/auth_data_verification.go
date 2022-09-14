@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"github.com/EestiChameleon/gophkeeper/models"
-	"github.com/EestiChameleon/gophkeeper/server/ctxfunc"
 	"github.com/EestiChameleon/gophkeeper/server/storage"
 )
 
@@ -29,8 +28,6 @@ func CheckAuthData(ld LoginData) (string, error) {
 	if EncryptPass(ld.Password) != u.Password {
 		return "", ErrWrongAuthData
 	}
-
-	ctxfunc.SetUserID(u.ID)
 
 	return JWTEncodeUserID(u.ID)
 }

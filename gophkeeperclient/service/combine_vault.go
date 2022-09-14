@@ -1,13 +1,21 @@
 package service
 
 import (
-	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
+	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
 	"github.com/EestiChameleon/gophkeeper/models"
 )
 
 // CombineVault check for latest version from both passed storage. Returns vault with the latest versions from both.
 func CombineVault(localVault, dbVault *models.VaultProto) *models.VaultProto {
-	out := storage.MakeVaultProto()
+	out := clstor.MakeVaultProto()
+	//anti nil incoming data.
+	if localVault == nil {
+		localVault = clstor.MakeVaultProto()
+	}
+	if dbVault == nil {
+		dbVault = clstor.MakeVaultProto()
+	}
+
 	for k, v := range localVault.Pair {
 		if v.Version > dbVault.Pair[k].Version {
 			out.Pair[k] = v
