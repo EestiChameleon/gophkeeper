@@ -48,7 +48,7 @@ Usage: gophkeeperclient registerUser --login=<login> --password=<password>.`,
 		// save local pair - localUserName -> JWT
 		clstor.Users[u.Username] = response.GetJwt()
 		// init for the new user local storage
-		clstor.Local[u.Username] = clstor.MakeVaultProto()
+		clstor.Local[u.Username] = clstor.MakeVault()
 		// return response
 		fmt.Println(response.GetStatus())
 	},

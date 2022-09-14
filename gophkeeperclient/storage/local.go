@@ -4,23 +4,21 @@ import (
 	"encoding/json"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/cfg"
 	"github.com/EestiChameleon/gophkeeper/models"
-	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"io/ioutil"
 	"log"
 	"os"
 )
 
 var (
-	Users = make(map[string]string)     //UserLocalName: JWT from server. UserLocalName is obtained via os/user -> user.Current()
-	Local map[string]*models.VaultProto // user id :vault
+	Users = make(map[string]string) //UserLocalName: JWT from server. UserLocalName is obtained via os/user -> user.Current()
+	Local map[string]*models.Vault  // UserLocalName :vault
 )
 
-/*
 // to think about?
 type LocalStorer interface {
-	Save(string, []byte)        // storageName string, dataJSON []byte => Save("pair", [01010101])
+	Save(string, []byte)           // storageName string, dataJSON []byte => Save("pair", [01010101])
 	Get(string, string) ClientData // Get("pair", "title") => 1-where(pair, text, bin, card), 2 - what
-	Delete(string, string)      // Delete("pair", "title") => 1-where(pair, text, bin, card), 2 - what
+	Delete(string, string)         // Delete("pair", "title") => 1-where(pair, text, bin, card), 2 - what
 }
 
 // ClientData is used to simplify the data operations.
@@ -29,7 +27,6 @@ type ClientData struct {
 	Data    []byte //login&pass / text / binary / cardNumber&expDate after marshal
 	Comment string //data comment
 }
-*/
 
 // InitStorage function initializes the storage data (check files & parse to local memory).
 func InitStorage() (err error) {
@@ -72,7 +69,7 @@ func initUsers() error {
 // initLocal reads or creates the local users data storage file. Then parse the content to local memory.
 func initLocal() error {
 	// second - open vault file
-	Local = make(map[string]*models.VaultProto)
+	Local = make(map[string]*models.Vault)
 
 	// create/open file
 	fv, err := os.OpenFile(cfg.VaultFileStoragePath, os.O_RDONLY|os.O_CREATE, 0777)
@@ -96,13 +93,13 @@ func initLocal() error {
 	return nil
 }
 
-// MakeVaultProto initializes a new instance of VaultProto.
-func MakeVaultProto() *models.VaultProto {
-	return &models.VaultProto{
-		Pair: make(map[string]*pb.Pair),
-		Text: make(map[string]*pb.Text),
-		Bin:  make(map[string]*pb.Bin),
-		Card: make(map[string]*pb.Card),
+// MakeVault initializes a new instance of Vault.
+func MakeVault() *models.Vault {
+	return &models.Vault{
+		Pair: make(map[string]*models.Pair),
+		Text: make(map[string]*models.Text),
+		Bin:  make(map[string]*models.Bin),
+		Card: make(map[string]*models.Card),
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
+	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"github.com/spf13/cobra"
@@ -79,7 +80,7 @@ Usage: gophkeeperclient getPair --title=<title>.`,
 
 		// successful response
 		// save pair to local
-		vault.Pair[response.Pairs.Title] = response.Pairs
+		vault.Pair[response.Pairs.Title] = clserv.ProtoToModelsPair(response.Pairs)
 		// return pair data
 		msg := fmt.Sprintf("Title: %s\nLogin: %s\nPassword: %s\nComment: %s\nMake sure you have the latest version by synchronizing your vault.",
 			response.Pairs.Title, response.Pairs.Login, response.Pairs.Pass, response.Pairs.Comment)

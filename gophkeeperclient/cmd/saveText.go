@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
+	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"google.golang.org/grpc/metadata"
@@ -80,7 +81,7 @@ Usage: gophkeeperclient saveText --title=<title_for_saved_text> --body=<text_con
 
 		// successful response
 		// save pair to local
-		vault.Text[saveText.Title] = &saveText
+		vault.Text[saveText.Title] = clserv.ProtoToModelsText(&saveText)
 		// return pair data
 		fmt.Println(response.GetStatus())
 

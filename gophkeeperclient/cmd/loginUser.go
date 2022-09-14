@@ -55,7 +55,7 @@ Usage: gophkeeperclient loginUser --login=<login> --password=<password>.`,
 		locV, ok := clstor.Local[u.Username]
 		if !ok {
 			// local storage not initiated
-			locV = clstor.MakeVaultProto()
+			locV = clstor.MakeVault()
 			clstor.Local[u.Username] = locV
 		}
 

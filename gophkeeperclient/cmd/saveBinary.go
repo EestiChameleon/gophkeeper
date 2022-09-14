@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
+	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"google.golang.org/grpc/metadata"
@@ -77,7 +78,7 @@ Usage: gophkeeperclient saveBinary --title=<title_for_saved_data> --body=<binary
 		}
 
 		// save data to local
-		vault.Bin[saveBin.Title] = &saveBin
+		vault.Bin[saveBin.Title] = clserv.ProtoToModelsBin(&saveBin)
 		// successful response
 		fmt.Println(response.GetStatus())
 	},

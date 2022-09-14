@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/EestiChameleon/gophkeeper/gophkeeperclient/grpcclient"
+	clserv "github.com/EestiChameleon/gophkeeper/gophkeeperclient/service"
 	clstor "github.com/EestiChameleon/gophkeeper/gophkeeperclient/storage"
 	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"google.golang.org/grpc/metadata"
@@ -80,7 +81,7 @@ Usage: gophkeeperclient getText --title=<title>.`,
 
 		// successful response
 		// save pair to local
-		vault.Text[response.Text.Title] = response.Text
+		vault.Text[response.Text.Title] = clserv.ProtoToModelsText(response.Text)
 		// return pair data
 		msg := fmt.Sprintf("Title: %s\nBody: %s\nComment: %s\nMake sure you have the latest version by synchronizing your vault.",
 			response.Text.Title, response.Text.Body, response.Text.Comment)
