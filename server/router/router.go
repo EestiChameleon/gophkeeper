@@ -138,11 +138,11 @@ func (g *GRPCServer) GetPair(ctx context.Context, in *pb.GetPairRequest) (*pb.Ge
 // PostPair handler checks and saves new pair data to database.
 // Handler verifies, if the provided pair data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostPair(ctx context.Context, in *pb.PostPairRequest) (*pb.PostPairResponse, error) {
-	if in.Pair.Version < 0 || in.Pair.Login == `` || in.Pair.Title == `` || in.Pair.Pass == `` {
+	if in.Pair.Version < 1 || in.Pair.Login == `` || in.Pair.Title == `` || in.Pair.Pass == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
-	// first - compare version in DB
 
+	// first - compare version in DB
 	dbPair, err := storage.Vault.PairByTitle(in.Pair.Title, ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil && !errors.Is(err, postgre.ErrNotFound) {
 		log.Println(err)
@@ -220,7 +220,7 @@ func (g *GRPCServer) GetText(ctx context.Context, in *pb.GetTextRequest) (*pb.Ge
 // PostText handler checks and saves new text data to database.
 // Handler verifies, if the provided text data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostText(ctx context.Context, in *pb.PostTextRequest) (*pb.PostTextResponse, error) {
-	if in.Text.Version < 0 || in.Text.Title == `` || in.Text.Body == `` {
+	if in.Text.Version < 1 || in.Text.Title == `` || in.Text.Body == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
@@ -301,7 +301,7 @@ func (g *GRPCServer) GetBin(ctx context.Context, in *pb.GetBinRequest) (*pb.GetB
 // PostBin handler checks and saves new binary data to database.
 // Handler verifies, if the provided binary data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostBin(ctx context.Context, in *pb.PostBinRequest) (*pb.PostBinResponse, error) {
-	if in.BinData.Version < 0 || in.BinData.Title == `` || len(in.BinData.Body) == 0 {
+	if in.BinData.Version < 1 || in.BinData.Title == `` || len(in.BinData.Body) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
@@ -383,7 +383,7 @@ func (g *GRPCServer) GetCard(ctx context.Context, in *pb.GetCardRequest) (*pb.Ge
 // PostCard handler checks and saves new card data to database.
 // Handler verifies, if the provided card data is the latest version and allows to proceed further.
 func (g *GRPCServer) PostCard(ctx context.Context, in *pb.PostCardRequest) (*pb.PostCardResponse, error) {
-	if in.Card.Version < 0 || in.Card.Title == `` || in.Card.Number == `` || in.Card.Expdate == `` {
+	if in.Card.Version < 1 || in.Card.Title == `` || in.Card.Number == `` || in.Card.Expdate == `` {
 		return nil, status.Error(codes.InvalidArgument, "invalid argument")
 	}
 	// first - compare version in DB
@@ -440,7 +440,7 @@ func (g *GRPCServer) DelCard(ctx context.Context, in *pb.DelCardRequest) (*pb.De
 }
 
 func (g *GRPCServer) SyncVault(ctx context.Context, in *pb.SyncVaultRequest) (*pb.SyncVaultResponse, error) {
-	data, err := postgre.GetAllUserDataLastVersion(ctxfunc.GetUserIDFromCTX(ctx))
+	data, err := storage.Vault.AllUserLatestData(ctxfunc.GetUserIDFromCTX(ctx))
 	if err != nil {
 		log.Println(err)
 		return nil, status.Error(codes.Internal, "failed to obtain latest data")

@@ -148,3 +148,8 @@ func (p *PostgreVault) CardDelete(title string, uID int) error {
 	log.Println("CardDelete affected rows:", affRows)
 	return err
 }
+
+func (p *PostgreVault) AllUserLatestData(usrID int) (*models.ActualProtoData, error) {
+	data, err := getAllUserDataLastVersion(usrID)
+	return models.ActualDataToProto(data), err
+}

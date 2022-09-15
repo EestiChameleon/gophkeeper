@@ -17,6 +17,7 @@ type Vaulter interface {
 	TextInt
 	BinInt
 	CardInt
+	AllUserLatestData(usrID int) (*models.ActualProtoData, error)
 }
 
 type PairInt interface {
@@ -58,7 +59,6 @@ func Close() error {
 }
 
 // InitTest initializes the test DB for tests.
-func InitTest() (err error) {
-	Vault, err = testdb.Run()
-	return err
+func InitTest() {
+	Vault = testdb.Run()
 }

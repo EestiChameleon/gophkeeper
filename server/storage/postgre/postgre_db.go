@@ -84,8 +84,8 @@ func GetAll(query string, dest interface{}, args ...interface{}) (err error) {
 	return
 }
 
-// GetAllUserDataLastVersion returns all user's data found in proto format.
-func GetAllUserDataLastVersion(usrID int) (*models.ActualProtoData, error) {
+// getAllUserDataLastVersion returns all user's data found in database. Last version.
+func getAllUserDataLastVersion(usrID int) (*models.ActualData, error) {
 	var err error
 	data := new(models.ActualData)
 	if err = GetAll("SELECT DISTINCT ON (title) title, login, pass, comment, version FROM gk_pair WHERE user_id = $1 AND deleted_at isnull ORDER BY title, version DESC;",
@@ -105,5 +105,5 @@ func GetAllUserDataLastVersion(usrID int) (*models.ActualProtoData, error) {
 		return nil, err
 	}
 
-	return models.ActualDataToProto(data), nil
+	return data, nil
 }

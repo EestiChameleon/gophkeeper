@@ -3,18 +3,19 @@ package testdb
 import (
 	"database/sql"
 	"github.com/EestiChameleon/gophkeeper/models"
+	pb "github.com/EestiChameleon/gophkeeper/proto"
 	"github.com/EestiChameleon/gophkeeper/server/storage/postgre"
 	"log"
 )
 
 var (
-	testUser = &models.User{
+	TestUser = &models.User{
 		ID:       7,
 		Login:    "user7",
 		Password: "8c96c3884a827355aed2c0f744594a52", //service.EncryptPass("pass7")
 	}
 
-	testPair = &models.Pair{
+	TestPair = &models.Pair{
 		ID:        1,
 		UserID:    7,
 		Title:     "testPair",
@@ -25,7 +26,7 @@ var (
 		DeletedAt: sql.NullTime{},
 	}
 
-	testText = &models.Text{
+	TestText = &models.Text{
 		ID:        2,
 		UserID:    7,
 		Title:     "testText",
@@ -35,7 +36,7 @@ var (
 		DeletedAt: sql.NullTime{},
 	}
 
-	testBin = &models.Bin{
+	TestBin = &models.Bin{
 		ID:        3,
 		UserID:    7,
 		Title:     "testBin",
@@ -45,7 +46,7 @@ var (
 		DeletedAt: sql.NullTime{},
 	}
 
-	testCard = &models.Card{
+	TestCard = &models.Card{
 		ID:             4,
 		UserID:         7,
 		Title:          "testCard",
@@ -61,28 +62,28 @@ type TestVault struct{}
 
 // UserAdd imitates user creation method. Returns id = 7.
 func (t *TestVault) UserAdd(login, pass string) (int, error) {
-	log.Printf("Test UserAdd: login %s, password %s", login, pass)
+	log.Printf("Test UserAdd: login %s, encrypted password %s", login, pass)
 	return 7, nil
 }
 
 // UserAdd imitates user creation method. Returns id = 7.
 func (t *TestVault) UserLogin(login string) (*models.User, error) {
 	log.Printf("Test UserLogin: login %s", login)
-	if login != testUser.Login {
+	if login != TestUser.Login {
 		return nil, postgre.ErrNotFound
 	}
 
-	return testUser, nil
+	return TestUser, nil
 }
 
 // PairByTitle provides test pair data.
 // All int values = 7. All string values = "test" + fieldName. Like Title = "testTitle".
 func (t *TestVault) PairByTitle(title string, usrID int) (*models.Pair, error) {
 	log.Printf("Test PairByTitle: title %s, user %d", title, usrID)
-	if title != testPair.Title {
+	if title != TestPair.Title || TestPair.DeletedAt.Valid {
 		return nil, postgre.ErrNotFound
 	}
-	return testPair, nil
+	return TestPair, nil
 }
 
 func (t *TestVault) PairAdd(uID int, title, login, pass, comment string, v uint32) error {
@@ -92,17 +93,17 @@ func (t *TestVault) PairAdd(uID int, title, login, pass, comment string, v uint3
 
 func (t *TestVault) PairDelete(title string, uID int) error {
 	log.Printf("Test PairDelete: %v, %v", title, uID)
-	if title == testPair.Title {
-		testPair.DeletedAt.Valid = true
+	if title == TestPair.Title {
+		TestPair.DeletedAt.Valid = true
 	}
 	return nil
 }
 
 func (t *TestVault) TextByTitle(title string, usrID int) (*models.Text, error) {
-	if title != testText.Title {
+	if title != TestText.Title || TestText.DeletedAt.Valid {
 		return nil, postgre.ErrNotFound
 	}
-	return testText, nil
+	return TestText, nil
 }
 
 func (t *TestVault) TextAdd(uID int, title, body, comment string, v uint32) error {
@@ -112,17 +113,17 @@ func (t *TestVault) TextAdd(uID int, title, body, comment string, v uint32) erro
 
 func (t *TestVault) TextDelete(title string, uID int) error {
 	log.Printf("Test TextDelete: %v, %v", title, uID)
-	if title == testText.Title {
-		testText.DeletedAt.Valid = true
+	if title == TestText.Title {
+		TestText.DeletedAt.Valid = true
 	}
 	return nil
 }
 
 func (t *TestVault) BinByTitle(title string, usrID int) (*models.Bin, error) {
-	if title != testBin.Title {
+	if title != TestBin.Title || TestBin.DeletedAt.Valid {
 		return nil, postgre.ErrNotFound
 	}
-	return testBin, nil
+	return TestBin, nil
 }
 
 func (t *TestVault) BinAdd(uID int, title string, body []byte, comment string, v uint32) error {
@@ -132,17 +133,17 @@ func (t *TestVault) BinAdd(uID int, title string, body []byte, comment string, v
 
 func (t *TestVault) BinDelete(title string, uID int) error {
 	log.Printf("Test BinDelete: %v, %v", title, uID)
-	if title == testBin.Title {
-		testBin.DeletedAt.Valid = true
+	if title == TestBin.Title {
+		TestBin.DeletedAt.Valid = true
 	}
 	return nil
 }
 
 func (t *TestVault) CardByTitle(title string, usrID int) (*models.Card, error) {
-	if title != testCard.Title {
+	if title != TestCard.Title || TestCard.DeletedAt.Valid {
 		return nil, postgre.ErrNotFound
 	}
-	return testCard, nil
+	return TestCard, nil
 }
 
 func (t *TestVault) CardAdd(uID int, title, number, expdate, comment string, v uint32) error {
@@ -152,8 +153,21 @@ func (t *TestVault) CardAdd(uID int, title, number, expdate, comment string, v u
 
 func (t *TestVault) CardDelete(title string, uID int) error {
 	log.Printf("Test CardDelete: %v, %v", title, uID)
-	if title == testCard.Title {
-		testCard.DeletedAt.Valid = true
+	if title == TestCard.Title {
+		TestCard.DeletedAt.Valid = true
 	}
 	return nil
+}
+
+func (t *TestVault) AllUserLatestData(usrID int) (*models.ActualProtoData, error) {
+	if usrID == 7 {
+		return &models.ActualProtoData{
+			Pairs: []*pb.Pair{models.ModelsToProtoPair(TestPair)},
+			Texts: []*pb.Text{models.ModelsToProtoText(TestText)},
+			Bins:  []*pb.Bin{models.ModelsToProtoBin(TestBin)},
+			Cards: []*pb.Card{models.ModelsToProtoCard(TestCard)},
+		}, nil
+	}
+
+	return new(models.ActualProtoData), nil
 }
