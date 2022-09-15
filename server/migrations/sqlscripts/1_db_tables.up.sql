@@ -2,7 +2,6 @@ BEGIN;
 ------------
 -- TABLES --
 ------------
--- // using create sequence instead of serial type
 
 CREATE TABLE IF NOT EXISTS gophkeeper_users
 (
@@ -22,8 +21,8 @@ CREATE TABLE IF NOT EXISTS gk_pair
     version    smallint default 1 not null,
     deleted_at timestamp
 );
-CREATE UNIQUE INDEX IF NOT EXISTS gk_pair_user_id_title_version_uindex
-    on gk_pair (user_id, title, version);
+CREATE UNIQUE INDEX IF NOT EXISTS gk_pair_user_id_title_version_deleted_at_uindex
+    on gk_pair (user_id, title, version, deleted_at);
 
 CREATE TABLE IF NOT EXISTS gk_text
 (
@@ -35,8 +34,8 @@ CREATE TABLE IF NOT EXISTS gk_text
     version    smallint default 1 not null,
     deleted_at timestamp
 );
-CREATE UNIQUE INDEX IF NOT EXISTS gk_text_user_id_title_version_uindex
-    on gk_text (user_id, title, version);
+CREATE UNIQUE INDEX IF NOT EXISTS gk_text_user_id_title_version_deleted_at_uindex
+    on gk_text (user_id, title, version, deleted_at);
 
 CREATE TABLE IF NOT EXISTS gk_bin
 (
@@ -48,8 +47,8 @@ CREATE TABLE IF NOT EXISTS gk_bin
     version    smallint default 1 not null,
     deleted_at timestamp
 );
-CREATE UNIQUE INDEX IF NOT EXISTS gk_bin_user_id_title_version_uindex
-    on gk_bin (user_id, title, version);
+CREATE UNIQUE INDEX IF NOT EXISTS gk_bin_user_id_title_version_deleted_at_uindex
+    on gk_bin (user_id, title, version, deleted_at);
 
 CREATE TABLE IF NOT EXISTS gk_card
 (
@@ -62,8 +61,8 @@ CREATE TABLE IF NOT EXISTS gk_card
     version    smallint default 1 not null ,
     deleted_at timestamp
 );
-CREATE UNIQUE INDEX IF NOT EXISTS gk_card_user_id_title_version_uindex
-    on gk_card (user_id, title, version);
+CREATE UNIQUE INDEX IF NOT EXISTS gk_card_user_id_title_version_deleted_at_uindex
+    on gk_card (user_id, title, version, deleted_at);
 
 
 ----------
